@@ -4,10 +4,33 @@ NodeJS version Laravel's 5.8 (and probably older versions) of Encrypter
 Class
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
 
+With this module you can create the encrypted payload for a cookie from Node Js
+and be read by Laravel.
+ 
+##Laravel Encrypter format:
+
+Laravel only allows `AES-128-CBC` `AES-256-CBC`.
+If no algorithm is defined default is `AES-256-CBC`
+
+```json
+{
+  "iv":  "iv in base64",
+  "value":  "encrypted data",
+  "mac":  "Hash HMAC"
+}
+```
 ## Use
 
+First we need to transpile code from TS to Js
+
+```sh
+$> npm run build 
+```
+
+This build command creates `dist/` directory
+ 
 ```js
-import {LaravelEncryptor} from './LaravelEncryptor'
+import {LaravelEncryptor} from './dist'
 
 let laravelEncryptor = new LaravelEncryptor({
     laravel_key: 'Laravel APP_KEY without base64:',
@@ -25,7 +48,7 @@ laravelEncryptor
 ## Options 
 ##### Object  {laravel_key, key_length} 
 * laravel_key: APP_KEY without `base64:`
-* key_length: 32|64 for aes-[128]-cbc aes-[256]-cbc
+* key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
 
 if no `key_length` is given default is 64.
 
@@ -34,12 +57,16 @@ if no `key_length` is given default is 64.
 ### encrypt
 arguments:
 * data: string
-* serialize: boolean, if data should be serialized before cipher
+* serialize: optional boolean, if data should be serialized before cipher
+
+if no `serialize` option is given default is to serialize.
 
 ### decrypt
 arguments:
 * data: string
-* serialize: boolean, if data should be unserialized after decipher
+* serialize: optional boolean, if data should be unserialized after decipher
+
+if no `serialize` option is given default is to unserialize.
 
 # Tests
 
