@@ -3,6 +3,16 @@
   "version": "1.0.0",
   "description": "node version Laravel encrypt",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AdSegura/node-laravel-encryptor.git"
+  },
+  "keywords": [
+    "laravel",
+    "crypto",
+    "nodejs"
+  ],
+  "homepage": "https://github.com/AdSegura/node-laravel-encryptor/blob/master/README.md",
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
