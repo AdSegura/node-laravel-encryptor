@@ -18,18 +18,14 @@ If no algorithm is defined default is `AES-256-CBC`
   "mac":  "Hash HMAC"
 }
 ```
-## Use
-
-First we need to transpile code from TS to Js
-
+## Install
 ```sh
-$> npm run build 
+$> npm i node-laravel-encryptor
 ```
 
-This build command creates `dist/` directory
- 
+## Use
 ```js
-import {LaravelEncryptor} from './dist'
+const {LaravelEncryptor} = require('node-laravel-encryptor');
 
 let laravelEncryptor = new LaravelEncryptor({
     laravel_key: 'Laravel APP_KEY without base64:',
@@ -69,6 +65,9 @@ if no `serialize` option is given default is to unserialize.
 
 # Tests
 
+```sh
+$> npm run test
+```
 To be able to run PHP test you must have installed:
 
 * PHP >= 7.1.3
@@ -82,7 +81,7 @@ To be able to run PHP test you must have installed:
 If not, test number 7 will fail.
 
 ```sh
-$> npm run build && npm run test
+$> npm run test
 
   node Laravel Encrypter
     ✓ should cipher and decipher
