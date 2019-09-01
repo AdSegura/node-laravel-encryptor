@@ -1,13 +1,12 @@
 # node-laravel-encryptor
 
-NodeJS version Laravel's 5.8 (and probably older versions) of Encrypter 
-Class
+NodeJS version of Laravel's 5.8 (and probably older versions) Encrypter Class
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
 
 With this module you can create the encrypted payload for a cookie from Node Js
 and be read by Laravel.
  
-##Laravel Encrypter format:
+## Laravel Encrypter format:
 
 Laravel only allows `AES-128-CBC` `AES-256-CBC`.
 If no algorithm is defined default is `AES-256-CBC`
