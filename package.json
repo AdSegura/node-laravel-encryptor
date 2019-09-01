@@ -1,8 +1,9 @@
 {
   "name": "laravelencryptor",
+  "module": "dist/index.js",
   "version": "1.0.0",
   "description": "node version Laravel encrypt",
-  "main": "index.js",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AdSegura/node-laravel-encryptor.git"
