@@ -4,6 +4,42 @@ NodeJS version Laravel's 5.8 (and probably older versions) of Encrypter
 Class
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
 
+## Use
+
+```js
+import {LaravelEncryptor} from './LaravelEncryptor'
+
+let laravelEncryptor = new LaravelEncryptor({
+    laravel_key: 'Laravel APP_KEY without base64:',
+});
+
+laravelEncryptor
+    .encrypt('foo')
+    .then(enc => console.log(enc));
+
+laravelEncryptor
+    .decrypt(enc)
+    .then(dec => console.log(dec));
+```
+
+## Options 
+##### Object  {laravel_key, key_length} 
+* laravel_key: APP_KEY without `base64:`
+* key_length: 32|64 for aes-[128]-cbc aes-[256]-cbc
+
+if no `key_length` is given default is 64.
+
+## Methods
+
+### encrypt
+arguments:
+* data: string
+* serialize: boolean, if data should be serialized before cipher
+
+### decrypt
+arguments:
+* data: string
+* serialize: boolean, if data should be unserialized after decipher
 
 # Tests
 
