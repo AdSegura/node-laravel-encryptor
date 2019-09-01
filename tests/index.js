@@ -1,5 +1,6 @@
 const {describe, before, after, it} = require("mocha");
 const {expect} = require("chai");
+var exec = require('child_process').exec;
 const {LaravelEncryptor} = require('../dist/');
 const laravel_key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text ='resistance is futile';
@@ -16,7 +17,7 @@ describe('node Laravel Encrypter', function () {
         laravelEncryptor
             .encrypt(text)
             .then(enc => {
-                console.log(enc)
+                //console.log(enc)
                 laravelEncryptor.decrypt(enc).then(res => {
                     expect(res).equal(text);
                     done()
@@ -106,6 +107,16 @@ describe('node Laravel Encrypter', function () {
                     .equal('Unexpected token ~ in JSON at position 0');
                 done()
             })
+    });
+
+    it('should decipher data at Laravel correctly', done => {
+        exec("php tests/php/index.php", function(err, stdout, stderr) {
+            if (err) {
+                console.error(err)
+            }
+            expect(stdout).equal(text);
+            done()
+        });
     });
 
 

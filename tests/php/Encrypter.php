@@ -1,13 +1,6 @@
 <?php
 
-namespace Illuminate\Encryption;
-
-use RuntimeException;
-use Illuminate\Contracts\Encryption\DecryptException;
-use Illuminate\Contracts\Encryption\EncryptException;
-use Illuminate\Contracts\Encryption\Encrypter as EncrypterContract;
-
-class Encrypter implements EncrypterContract
+class Encrypter
 {
     /**
      * The encryption key.
@@ -30,17 +23,18 @@ class Encrypter implements EncrypterContract
      * @param  string  $cipher
      * @return void
      *
-     * @throws \RuntimeException
+     * @throws \Exception
      */
     public function __construct($key, $cipher = 'AES-128-CBC')
     {
+        //$key = base64_decode('LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=');
         $key = (string) $key;
 
         if (static::supported($key, $cipher)) {
             $this->key = $key;
             $this->cipher = $cipher;
         } else {
-            throw new RuntimeException('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            throw new Exception('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         }
     }
 
@@ -56,7 +50,7 @@ class Encrypter implements EncrypterContract
         $length = mb_strlen($key, '8bit');
 
         return ($cipher === 'AES-128-CBC' && $length === 16) ||
-               ($cipher === 'AES-256-CBC' && $length === 32);
+            ($cipher === 'AES-256-CBC' && $length === 32);
     }
 
     /**
@@ -92,7 +86,7 @@ class Encrypter implements EncrypterContract
         );
 
         if ($value === false) {
-            throw new EncryptException('Could not encrypt the data.');
+            throw new Exception('Could not encrypt the data.');
         }
 
         // Once we get the encrypted value we'll go ahead and base64_encode the input
@@ -103,7 +97,7 @@ class Encrypter implements EncrypterContract
         $json = json_encode(compact('iv', 'value', 'mac'));
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new EncryptException('Could not encrypt the data.');
+            throw new Exception('Could not encrypt the data.');
         }
 
         return base64_encode($json);
@@ -145,7 +139,7 @@ class Encrypter implements EncrypterContract
         );
 
         if ($decrypted === false) {
-            throw new DecryptException('Could not decrypt the data.');
+            throw new Exception('Could not decrypt the data.');
         }
 
         return $unserialize ? unserialize($decrypted) : $decrypted;
@@ -192,11 +186,11 @@ class Encrypter implements EncrypterContract
         // assume it is invalid and bail out of the routine since we will not be able
         // to decrypt the given value. We'll also check the MAC for this encryption.
         if (! $this->validPayload($payload)) {
-            throw new DecryptException('The payload is invalid.');
+            throw new Exception('The payload is invalid.');
         }
 
         if (! $this->validMac($payload)) {
-            throw new DecryptException('The MAC is invalid.');
+            throw new Exception('The MAC is invalid.');
         }
 
         return $payload;
@@ -211,7 +205,7 @@ class Encrypter implements EncrypterContract
     protected function validPayload($payload)
     {
         return is_array($payload) && isset($payload['iv'], $payload['value'], $payload['mac']) &&
-               strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
+            strlen(base64_decode($payload['iv'], true)) === openssl_cipher_iv_length($this->cipher);
     }
 
     /**
