@@ -1,0 +1,24 @@
+{
+  "name": "laravelencryptor",
+  "version": "1.0.0",
+  "description": "node version Laravel encrypt",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "test": "node_modules/.bin/_mocha --exit tests/index.js"
+  },
+  "author": "Adolfo Segura Hall",
+  "license": "ISC",
+  "dependencies": {
+    "debug": "^4.1.1",
+    "php-serialize": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.3",
+    "chai": "^4.2.0",
+    "expect": "^24.9.0",
+    "mocha": "^6.2.0",
+    "typescript": "^2.9.2"
+  }
+}
