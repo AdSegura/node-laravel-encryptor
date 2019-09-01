@@ -1,5 +1,5 @@
 {
-  "name": "laravelencryptor",
+  "name": "node-laravel-encryptor",
   "module": "dist/index.js",
   "version": "1.0.0",
   "description": "node version Laravel encrypt",
