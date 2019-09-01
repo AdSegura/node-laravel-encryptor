@@ -7,7 +7,7 @@ Class
 
 # Tests
 
-Must have installed for the PHP test, as mimics Laravel 5.8:
+To be able to run PHP test you must have installed:
 
 * PHP >= 7.1.3
 * OpenSSL PHP Extension
@@ -17,7 +17,7 @@ Must have installed for the PHP test, as mimics Laravel 5.8:
 * JSON PHP Extension
 * BCMath PHP Extension
 
-If not test number 7 will fail.
+If not, test number 7 will fail.
 
 ```sh
 $> npm run build && npm run test
