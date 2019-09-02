@@ -223,7 +223,7 @@ export class LaravelEncryptor {
     private createDecipheriv(iv): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
-                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, this.base64ToUtf8(iv));
+                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
                 resolve(true)
             } catch (e) {
                 reject(e)
@@ -286,6 +286,7 @@ export class LaravelEncryptor {
         let buff = Buffer.from(data, 'base64');
         return buff.toString('utf8');
     }
+
 
     /**
      * Create HMAC hash a la laravel

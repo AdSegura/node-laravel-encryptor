@@ -99,7 +99,7 @@ class LaravelEncryptor {
     createDecipheriv(iv) {
         return new Promise((resolve, reject) => {
             try {
-                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, this.base64ToUtf8(iv));
+                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
                 resolve(true);
             }
             catch (e) {
