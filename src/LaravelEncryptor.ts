@@ -1,9 +1,5 @@
-import {type} from "os";
-
 const Serialize = require('php-serialize');
 const crypto = require('crypto');
-const debug = require('debug')('LaravelEncryptor');
-type TypedArray = Int8Array | Uint8Array | Int16Array | Uint16Array | Int32Array | Uint32Array | Uint8ClampedArray | Float32Array | Float64Array;
 
 // Cipher steps:
 // serialize
@@ -60,8 +56,6 @@ export class LaravelEncryptor {
     constructor(private options: {laravel_key: string, key_length?: number }) {
 
         this.errors = [];
-
-        debug(`constructor options: ${JSON.stringify(this.options)}\n`);
 
         this.setAlgorithm();
 
@@ -121,16 +115,6 @@ export class LaravelEncryptor {
             })
     }
 
-    stringifyAndBase64(encrypted){
-        encrypted = JSON.stringify(encrypted);
-
-        return Buffer.from(encrypted).toString('base64');
-    }
-
-    throwError(error){
-        throw error;
-    }
-
     /**
      * decrypt
      *
@@ -163,12 +147,13 @@ export class LaravelEncryptor {
             return Promise.reject(e);
         }
 
-        return this.createDecipheriv(payload.iv).then(_ => {
+        return this
+            .createDecipheriv(payload.iv)
+            .then(() => {
 
-            //returnDecipher.bind(this)
-            let decrypted = this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
+                const decrypted = this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
 
-            return serialize ? this.unSerialize(decrypted) : decrypted;
+                return serialize ? this.unSerialize(decrypted) : decrypted;
 
         }, this.throwError)
     }
@@ -297,5 +282,26 @@ export class LaravelEncryptor {
      */
     private returnError(){
         return this.errors[0];
+    }
+
+    /**
+     * stringifyAndBase64
+     *  will json.stringify object {iv, value, mac} and base64 it
+     *
+     * @param encrypted {iv, value, mac}
+     * @return string base64
+     */
+    private stringifyAndBase64(encrypted){
+        encrypted = JSON.stringify(encrypted);
+        return Buffer.from(encrypted).toString('base64');
+    }
+
+    /**
+     * Throw Error.
+     *
+     * @param error
+     */
+    throwError(error){
+        throw error;
     }
 }

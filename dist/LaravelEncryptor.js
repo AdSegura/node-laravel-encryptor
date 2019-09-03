@@ -2,14 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Serialize = require('php-serialize');
 const crypto = require('crypto');
-const debug = require('debug')('LaravelEncryptor');
 class LaravelEncryptor {
     constructor(options) {
         this.options = options;
         this.key_length = 64;
         this.valid_key_lengths = [32, 64];
         this.errors = [];
-        debug(`constructor options: ${JSON.stringify(this.options)}\n`);
         this.setAlgorithm();
         this.secret = Buffer.from(this.options.laravel_key, 'base64');
     }
@@ -39,13 +37,6 @@ class LaravelEncryptor {
             };
         });
     }
-    stringifyAndBase64(encrypted) {
-        encrypted = JSON.stringify(encrypted);
-        return Buffer.from(encrypted).toString('base64');
-    }
-    throwError(error) {
-        throw error;
-    }
     decrypt(data, serialize) {
         if (this.is_there_any_errors())
             return Promise.reject(this.returnError());
@@ -60,8 +51,10 @@ class LaravelEncryptor {
         catch (e) {
             return Promise.reject(e);
         }
-        return this.createDecipheriv(payload.iv).then(_ => {
-            let decrypted = this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
+        return this
+            .createDecipheriv(payload.iv)
+            .then(() => {
+            const decrypted = this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
             return serialize ? this.unSerialize(decrypted) : decrypted;
         }, this.throwError);
     }
@@ -123,6 +116,13 @@ class LaravelEncryptor {
     }
     returnError() {
         return this.errors[0];
+    }
+    stringifyAndBase64(encrypted) {
+        encrypted = JSON.stringify(encrypted);
+        return Buffer.from(encrypted).toString('base64');
+    }
+    throwError(error) {
+        throw error;
     }
 }
 exports.LaravelEncryptor = LaravelEncryptor;
