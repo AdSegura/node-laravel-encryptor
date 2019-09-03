@@ -4,6 +4,7 @@ var exec = require('child_process').exec;
 const {LaravelEncryptor} = require('../dist/');
 const laravel_key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text ='resistance is futile';
+const one_object = {foo: "bar"};
 
 describe('node Laravel Encrypter', function () {
 
@@ -22,6 +23,22 @@ describe('node Laravel Encrypter', function () {
                     expect(res).equal(text);
                     done()
                 })
+        })
+    });
+
+    it('should fail cipher and decipher object without serialize', done => {
+
+        const laravelEncryptor = new LaravelEncryptor({
+            laravel_key,
+            key_length: 64
+        });
+
+        laravelEncryptor
+            .encrypt(one_object, false)
+            .then()
+            .catch(e => {
+                expect(e.message).equals('The "data" argument must be one of type string, Buffer, TypedArray, or DataView. Received type object');
+                done()
         })
     });
 
