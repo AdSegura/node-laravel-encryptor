@@ -1,6 +1,6 @@
 # node-laravel-encryptor
 
-NodeJS version of Laravel's 5.8 (and probably older versions) Encrypter Class
+NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.0 
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
 
 With this module you can create the encrypted payload for a cookie from Node Js
@@ -85,14 +85,17 @@ $> npm run test
 
   node Laravel Encrypter
     ✓ should cipher and decipher
+    ✓ should fail cipher and decipher object without serialize
     ✓ should cipher and decipher with no key_length defined
     ✓ should cipher and decipher with no serialize nor unserialize
     ✓ should fail cipher not valid Laravel Key
     ✓ should fail cipher not valid algorithm
     ✓ should fail decipher not valid data
     ✓ should decipher data at Laravel correctly (51ms)
+    ✓ should decipher from Laravel correctly (60ms)
 
 
-  7 passing (74ms)
+  9 passing (137ms)
+
 
 ```
