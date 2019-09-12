@@ -127,13 +127,21 @@ describe('node Laravel Encrypter', function () {
     });
 
     it('should decipher data at Laravel correctly', done => {
-        exec("php tests/php/decrypt.php", function(err, stdout, stderr) {
-            if (err) {
-                console.error(err)
-            }
-            expect(stdout).equal(text);
-            done()
+        const laravelEncryptor = new LaravelEncryptor({
+            laravel_key
         });
+
+        laravelEncryptor
+            .encrypt(text)
+            .then(enc => {
+                exec(`php tests/php/decrypt.php ${enc}`, function (err, stdout, stderr) {
+                    if (err) {
+                        console.error(err)
+                    }
+                    expect(stdout).equal(text);
+                    done()
+                });
+            });
     });
 
     it('should decipher from Laravel correctly', done => {
