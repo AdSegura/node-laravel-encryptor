@@ -180,6 +180,8 @@ class Encrypter
      */
     protected function getJsonPayload($payload)
     {
+
+
         $payload = json_decode(base64_decode($payload), true);
 
         // If the payload is not valid JSON or does not have the proper keys set we will

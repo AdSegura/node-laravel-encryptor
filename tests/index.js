@@ -3,7 +3,8 @@ const {expect} = require("chai");
 var exec = require('child_process').exec;
 const {LaravelEncryptor} = require('../dist/');
 const laravel_key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
-const text ='resistance is futile';
+const text = 'resistance is futile';
+const text1 = 'foo bar baz';
 const one_object = {foo: "bar"};
 
 describe('node Laravel Encrypter', function () {
@@ -23,7 +24,7 @@ describe('node Laravel Encrypter', function () {
                     expect(res).equal(text);
                     done()
                 })
-        })
+            })
     });
 
     it('should fail cipher and decipher object without serialize', done => {
@@ -39,7 +40,7 @@ describe('node Laravel Encrypter', function () {
             .catch(e => {
                 expect(e.message).equals('The "data" argument must be one of type string, Buffer, TypedArray, or DataView. Received type object');
                 done()
-        })
+            })
     });
 
     it('should cipher and decipher with no key_length defined', done => {
@@ -56,9 +57,10 @@ describe('node Laravel Encrypter', function () {
                     .then(res => {
                         expect(res).equal(text);
                         done()
-                })
+                    })
             })
     });
+
 
     it('should cipher and decipher with no serialize nor unserialize', done => {
 
@@ -126,6 +128,34 @@ describe('node Laravel Encrypter', function () {
             })
     });
 
+    it('should cipher and decipher multiple times', done => {
+
+        const laravelEncryptor = new LaravelEncryptor({
+            laravel_key
+        });
+
+        laravelEncryptor
+            .encrypt(text)
+            .then(enc => {
+                laravelEncryptor
+                    .decrypt(enc)
+                    .then(res => {
+                        expect(res).equal(text);
+                    })
+            }).then(() => {
+            laravelEncryptor
+                .encrypt(text1)
+                .then(enc => {
+                    laravelEncryptor
+                        .decrypt(enc)
+                        .then(res => {
+                            expect(res).equal(text1);
+                            done()
+                        })
+                })
+        })
+    });
+
     it('should decipher data at Laravel correctly', done => {
         const laravelEncryptor = new LaravelEncryptor({
             laravel_key
@@ -150,7 +180,7 @@ describe('node Laravel Encrypter', function () {
             laravel_key
         });
 
-        exec("php tests/php/crypt.php", function(err, stdout, stderr) {
+        exec("php tests/php/crypt.php", function (err, stdout, stderr) {
             if (err) {
                 console.error(err)
             }
