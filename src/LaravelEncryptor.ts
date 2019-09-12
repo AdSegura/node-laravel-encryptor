@@ -139,7 +139,7 @@ export class LaravelEncryptor {
             return {
                 iv: LaravelEncryptor.toBase64(iv),
                 value: encrypted,
-                mac: this.hashIt(iv, encrypted)
+                mac: this.hashIt(LaravelEncryptor.toBase64(iv), encrypted)
             };
         }
     }
