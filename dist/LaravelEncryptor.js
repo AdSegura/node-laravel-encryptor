@@ -21,21 +21,37 @@ class LaravelEncryptor {
         if (this.is_there_any_errors())
             return Promise.reject(this.returnError());
         serialize = (serialize !== undefined) ? serialize : true;
-        const payload = serialize ? this.serialize(data) : data;
+        const payload = serialize ? LaravelEncryptor.serialize(data) : data;
         return this
             .encryptIt(payload)
-            .then(this.stringifyAndBase64, this.throwError);
+            .then(LaravelEncryptor.stringifyAndBase64, LaravelEncryptor.throwError);
     }
     encryptIt(data) {
-        return this.createCypher()
-            .then(iv => {
-            let encrypted = this.cipher.update(data, 'utf8', 'base64') + this.cipher.final('base64');
+        return this
+            .generate_iv()
+            .then(this.createCypher())
+            .then(this.generateEncryptedObject(data));
+    }
+    createCypher() {
+        return (iv) => {
+            try {
+                this.cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
+                return iv;
+            }
+            catch (e) {
+                throw e;
+            }
+        };
+    }
+    generateEncryptedObject(data) {
+        return (iv) => {
+            const encrypted = this.cipher.update(data, 'utf8', 'base64') + this.cipher.final('base64');
             return {
-                iv: iv,
+                iv: LaravelEncryptor.toBase64(iv),
                 value: encrypted,
                 mac: this.hashIt(iv, encrypted)
             };
-        });
+        };
     }
     decrypt(data, serialize) {
         if (this.is_there_any_errors())
@@ -44,7 +60,7 @@ class LaravelEncryptor {
     }
     decryptIt(payload, serialize) {
         serialize = (serialize !== undefined) ? serialize : true;
-        payload = this.base64ToUtf8(payload);
+        payload = LaravelEncryptor.base64ToUtf8(payload);
         try {
             payload = JSON.parse(payload);
         }
@@ -53,63 +69,62 @@ class LaravelEncryptor {
         }
         return this
             .createDecipheriv(payload.iv)
-            .then(() => {
-            const decrypted = this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
-            return serialize ? this.unSerialize(decrypted) : decrypted;
-        }, this.throwError);
-    }
-    createCypher() {
-        return new Promise((resolve, reject) => {
-            this.generate_iv().then(iv => {
-                try {
-                    this.cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-                    resolve(this.toBase64(iv));
-                }
-                catch (e) {
-                    reject(e);
-                }
-            }).catch(e => {
-                return reject(e);
-            });
-        });
+            .then(this.cryptoDecipher(payload))
+            .then(this.ifSerialized_unserialize(serialize), LaravelEncryptor.throwError);
     }
     createDecipheriv(iv) {
         return new Promise((resolve, reject) => {
             try {
                 this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
-                resolve(true);
+                resolve();
             }
             catch (e) {
                 reject(e);
             }
         });
     }
+    cryptoDecipher(payload) {
+        return () => {
+            return this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
+        };
+    }
+    ifSerialized_unserialize(serialize) {
+        return (decrypted) => {
+            return serialize ? LaravelEncryptor.unSerialize(decrypted) : decrypted;
+        };
+    }
     generate_iv() {
         return new Promise((resolve, reject) => {
-            crypto.randomBytes(32, (err, buffer) => {
+            crypto.randomBytes(16, (err, buffer) => {
                 if (err)
                     return reject(err);
                 resolve(buffer.toString('hex').slice(0, 16));
             });
         });
     }
-    serialize(data) {
+    static serialize(data) {
         return Serialize.serialize(data);
     }
-    unSerialize(data) {
+    static unSerialize(data) {
         return Serialize.unserialize(data);
     }
-    toBase64(data) {
-        let buff = Buffer.from(data);
-        return buff.toString('base64');
+    static toBase64(data) {
+        return Buffer.from(data).toString('base64');
     }
-    base64ToUtf8(data) {
-        let buff = Buffer.from(data, 'base64');
-        return buff.toString('utf8');
+    static base64ToUtf8(data) {
+        return Buffer.from(data, 'base64').toString('utf8');
     }
     hashIt(iv, encrypted) {
-        let hmac = crypto.createHmac("sha256", this.secret);
-        return hmac.update(Buffer.from(iv + encrypted, 'utf-8')).digest("hex");
+        const hmac = LaravelEncryptor.createHmac("sha256", this.secret);
+        return hmac
+            .update(LaravelEncryptor.setHmacPayload(iv, encrypted))
+            .digest("hex");
+    }
+    static createHmac(alg, secret) {
+        return crypto.createHmac(alg, secret);
+    }
+    static setHmacPayload(iv, encrypted) {
+        return Buffer.from(iv + encrypted, 'utf-8');
     }
     is_there_any_errors() {
         return this.errors.length >= 1;
@@ -117,11 +132,11 @@ class LaravelEncryptor {
     returnError() {
         return this.errors[0];
     }
-    stringifyAndBase64(encrypted) {
+    static stringifyAndBase64(encrypted) {
         encrypted = JSON.stringify(encrypted);
         return Buffer.from(encrypted).toString('base64');
     }
-    throwError(error) {
+    static throwError(error) {
         throw error;
     }
 }
