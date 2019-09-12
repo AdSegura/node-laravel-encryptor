@@ -134,12 +134,15 @@ export class LaravelEncryptor {
      */
     private generateEncryptedObject(data) {
         return (iv) => {
+
             const encrypted = this.cipher.update(data, 'utf8', 'base64') + this.cipher.final('base64');
 
+            iv = LaravelEncryptor.toBase64(iv);
+
             return {
-                iv: LaravelEncryptor.toBase64(iv),
+                iv,
                 value: encrypted,
-                mac: this.hashIt(LaravelEncryptor.toBase64(iv), encrypted)
+                mac: this.hashIt(iv, encrypted)
             };
         }
     }
