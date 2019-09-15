@@ -25,24 +25,25 @@ $> npm i node-laravel-encryptor
 
 ## Use
 ```js
-const {LaravelEncryptor} = require('node-laravel-encryptor');
+const {Encryptor} = require('node-laravel-encryptor');
 
-let laravelEncryptor = new LaravelEncryptor({
-    laravel_key: 'Laravel APP_KEY without base64:',
+let encryptor = new Encryptor({
+    key: 'Laravel APP_KEY without base64:',
 });
 
-laravelEncryptor
-    .encrypt('foo')
+encryptor
+    .encrypt({foo: 'bar'})
     .then(enc => console.log(enc));
 
-laravelEncryptor
+encryptor
     .decrypt(enc)
     .then(dec => console.log(dec));
 ```
 
 ## Options 
 ##### Object  {laravel_key, key_length} 
-* laravel_key: APP_KEY without `base64:`
+* laravel_key: APP_KEY without `base64:` DEPRECIATED
+* key: APP_KEY without `base64:` 
 * key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
 
 if no `key_length` is given default is 64.
@@ -91,11 +92,11 @@ $> npm run test
     ✓ should fail cipher not valid Laravel Key
     ✓ should fail cipher not valid algorithm
     ✓ should fail decipher not valid data
-    ✓ should decipher data at Laravel correctly (51ms)
-    ✓ should decipher from Laravel correctly (60ms)
+    ✓ should cipher and decipher multiple times
+    ✓ should decipher data at Laravel correctly (52ms)
+    ✓ should decipher from Laravel correctly (51ms)
 
 
-  9 passing (137ms)
-
+  10 passing (128ms)
 
 ```
