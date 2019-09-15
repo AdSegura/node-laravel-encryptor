@@ -7,9 +7,12 @@ class LaravelEncryptor {
         this.options = options;
         this.key_length = 64;
         this.valid_key_lengths = [32, 64];
+        if (this.options.laravel_key)
+            console.log('Laravel Encryptor, laravel_key is depreciated, please use key instead');
+        const key = this.options.laravel_key ? this.options.laravel_key : this.options.key;
         this.errors = [];
         this.setAlgorithm();
-        this.secret = Buffer.from(this.options.laravel_key, 'base64');
+        this.secret = Buffer.from(key, 'base64');
     }
     setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
@@ -29,28 +32,35 @@ class LaravelEncryptor {
     encryptIt(data) {
         return this
             .generate_iv()
-            .then(this.createCypher())
-            .then(this.generateEncryptedObject(data));
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject());
     }
-    createCypher() {
+    createCypherIv() {
         return (iv) => {
             try {
-                this.cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-                return iv;
+                return { iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv) };
             }
             catch (e) {
                 throw e;
             }
         };
     }
-    generateEncryptedObject(data) {
-        return (iv) => {
-            const encrypted = this.cipher.update(data, 'utf8', 'base64') + this.cipher.final('base64');
+    cipherIt(data) {
+        return ({ iv, cipher }) => {
+            return {
+                iv,
+                value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
+            };
+        };
+    }
+    generateEncryptedObject() {
+        return ({ iv, value }) => {
             iv = LaravelEncryptor.toBase64(iv);
             return {
                 iv,
-                value: encrypted,
-                mac: this.hashIt(iv, encrypted)
+                value,
+                mac: this.hashIt(iv, value)
             };
         };
     }
@@ -76,8 +86,8 @@ class LaravelEncryptor {
     createDecipheriv(iv) {
         return new Promise((resolve, reject) => {
             try {
-                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
-                resolve();
+                const deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+                resolve(deCipher);
             }
             catch (e) {
                 reject(e);
@@ -85,8 +95,8 @@ class LaravelEncryptor {
         });
     }
     cryptoDecipher(payload) {
-        return () => {
-            return this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
+        return (deCipher) => {
+            return deCipher.update(payload.value, 'base64', 'utf8') + deCipher.final('utf8');
         };
     }
     ifSerialized_unserialize(serialize) {
@@ -139,6 +149,16 @@ class LaravelEncryptor {
     }
     static throwError(error) {
         throw error;
+    }
+    static generateRandomKey(length) {
+        return new Promise((resolve, reject) => {
+            length = length ? length : 32;
+            crypto.randomBytes(length, (err, buffer) => {
+                if (err)
+                    return reject(err);
+                resolve(buffer.toString('base64'));
+            });
+        });
     }
 }
 exports.LaravelEncryptor = LaravelEncryptor;

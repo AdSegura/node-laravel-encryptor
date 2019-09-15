@@ -39,12 +39,6 @@ export class LaravelEncryptor {
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
     private readonly valid_key_lengths = [32, 64];
 
-    /** cipher: node crypto instance */
-    private cipher: any;
-
-    /** decipher: node crypto instance */
-    private deCipher: any;
-
     /** array errors */
     private errors: any;
 
@@ -53,13 +47,18 @@ export class LaravelEncryptor {
      *
      * @param options {laravel_key: string, key_length?: number }
      */
-    constructor(private options: { laravel_key: string, key_length?: number }) {
+    constructor(private options: { laravel_key?: string, key?: string, key_length?: number }) {
+
+        if (this.options.laravel_key)
+            console.log('Laravel Encryptor, laravel_key is depreciated, please use key instead');
+
+        const key = this.options.laravel_key ? this.options.laravel_key: this.options.key;
 
         this.errors = [];
 
         this.setAlgorithm();
 
-        this.secret = Buffer.from(this.options.laravel_key, 'base64');
+        this.secret = Buffer.from(key, 'base64');
     }
 
     /**
@@ -106,8 +105,9 @@ export class LaravelEncryptor {
     private encryptIt(data): Promise<any> {
         return this
             .generate_iv()
-            .then(this.createCypher())
-            .then(this.generateEncryptedObject(data))
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject())
     }
 
     /**
@@ -115,12 +115,10 @@ export class LaravelEncryptor {
      *
      * @return Promise crypto cipher
      */
-    private createCypher(): any {
+    private createCypherIv(): any {
         return (iv) => {
-
             try {
-                this.cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-                return iv;
+                 return {iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv)};
             } catch (e) {
                 throw e
             }
@@ -132,17 +130,25 @@ export class LaravelEncryptor {
      *
      * @param data
      */
-    private generateEncryptedObject(data) {
-        return (iv) => {
-
-            const encrypted = this.cipher.update(data, 'utf8', 'base64') + this.cipher.final('base64');
-
-            iv = LaravelEncryptor.toBase64(iv);
-
+    private cipherIt(data) {
+        return ({iv, cipher}: any) => {
             return {
                 iv,
-                value: encrypted,
-                mac: this.hashIt(iv, encrypted)
+                value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
+            };
+        }
+    }
+
+    /**
+     * generate Laravel Encrypted Object
+     */
+    private generateEncryptedObject() {
+        return ({iv, value}: any) => {
+            iv = LaravelEncryptor.toBase64(iv);
+            return {
+                iv,
+                value,
+                mac: this.hashIt(iv, value)
             };
         }
     }
@@ -194,8 +200,8 @@ export class LaravelEncryptor {
     private createDecipheriv(iv): Promise<boolean> {
         return new Promise((resolve, reject) => {
             try {
-                this.deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
-                resolve()
+                const deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+                resolve(deCipher)
             } catch (e) {
                 reject(e)
             }
@@ -208,8 +214,8 @@ export class LaravelEncryptor {
      * @param payload
      */
     private cryptoDecipher(payload) {
-        return () => {
-            return this.deCipher.update(payload.value, 'base64', 'utf8') + this.deCipher.final('utf8');
+        return (deCipher) => {
+            return deCipher.update(payload.value, 'base64', 'utf8') + deCipher.final('utf8');
         }
     }
 
@@ -350,5 +356,21 @@ export class LaravelEncryptor {
      */
     static throwError(error) {
         throw error;
+    }
+
+    /**
+     * Generate a random key for the application.
+     *
+     * @return string
+     */
+    static generateRandomKey(length?: number)
+    {
+        return new Promise((resolve, reject) => {
+            length = length ? length : 32;
+            crypto.randomBytes(length, (err, buffer) => {
+                if (err) return reject(err);
+                resolve(buffer.toString('base64'))
+            });
+        })
     }
 }
