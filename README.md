@@ -41,9 +41,9 @@ encryptor
 ```
 
 ## Options 
-##### Object  {laravel_key, key_length} 
-* laravel_key: APP_KEY without `base64:` DEPRECIATED
+###### Object  {key, key_length} 
 * key: APP_KEY without `base64:` 
+* laravel_key: `DEPRECIATED`
 * key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
 
 if no `key_length` is given default is 64.
@@ -78,8 +78,6 @@ To be able to run PHP test you must have installed:
 * Ctype PHP Extension
 * JSON PHP Extension
 * BCMath PHP Extension
-
-If not, test number 7 will fail.
 
 ```sh
 $> npm run test

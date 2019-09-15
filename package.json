@@ -1,7 +1,7 @@
 {
   "name": "node-laravel-encryptor",
   "module": "dist/index.js",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "node version Laravel encrypt",
   "main": "dist/index.js",
   "repository": {
