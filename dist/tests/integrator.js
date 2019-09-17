@@ -28,12 +28,12 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
 
         const server = new ExpressServer(options);
         const requester = chai.request.agent(server).keepOpen();
-        const cookieAccess = new Cookie('localhost')
+        const cookieAccess = new Cookie();
 
          requester.get('/')
             .then(response => {
+                console.log(response.res.headers['set-cookie'][0])
                 const cookie = cookieAccess.parse(response.res.headers['set-cookie'][0])
-                //console.log(response.res.headers['set-cookie'][0])
                 encryptor.decrypt(decodeURIComponent(cookie.value), false)
                     .then(res => {
                     expect(res).equals(server_id)
