@@ -1,8 +1,9 @@
 const {describe, it} = require("mocha");
 const {expect} = require("chai");
 const exec = require('child_process').exec;
-const {LaravelEncryptor} = require('../dist/');
-const {Encryptor} = require('../dist/');
+const {LaravelEncryptor} = require('../');
+const {Encryptor} = require('../');
+const {EncryptorSync} = require('../');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};
@@ -159,7 +160,7 @@ describe('node Laravel Encrypter', function () {
         encryptor
             .encrypt(one_object)
             .then(enc => {
-                exec(`php tests/php/decrypt.php ${enc}`, function (err, stdout, stderr) {
+                exec(`php dist/tests/php/decrypt.php ${enc}`, function (err, stdout, stderr) {
                     if (err) {
                         console.error(err)
                     }
@@ -175,7 +176,7 @@ describe('node Laravel Encrypter', function () {
             key
         });
 
-        exec(`php tests/php/crypt.php`, function (err, stdout, stderr) {
+        exec(`php dist/tests/php/crypt.php`, function (err, stdout, stderr) {
             if (err) {
                 console.error(err)
             }
@@ -188,5 +189,28 @@ describe('node Laravel Encrypter', function () {
                 })
         });
 
+    });
+
+    it('should cipher and decipher Sync Mode', done => {
+
+        const encryptor = new EncryptorSync({key});
+        let enc = encryptor.encrypt(text, false);
+        let dec = encryptor.decrypt(enc, false);
+        expect(dec).equal(text);
+        done();
+    });
+
+    it('should decipher data, Sync Mode, at Laravel correctly', done => {
+        const encryptor = new EncryptorSync({key});
+
+        let enc = encryptor.encrypt(one_object, true);
+
+        exec(`php dist/tests/php/decrypt.php ${enc}`, function (err, stdout, stderr) {
+            if (err) {
+                console.error(err)
+            }
+            expect(stdout).equal(JSON.stringify(one_object));
+            done()
+        });
     });
 });

@@ -1,5 +1,5 @@
 <?php
-include 'tests/php/Encrypter.php';
+include 'dist/tests/php/Encrypter.php';
 
 $payload = ['foo' => 'bar'];
 

@@ -1,31 +1,23 @@
 const Serialize = require('php-serialize');
 const crypto = require('crypto');
 
-// Cipher steps:
-// serialize
-// cipher
-// base64 iv
-// hash HMac: iv + encrypted
-// json_encode {iv, encrypted, MAC}
-// base64
-
 /**
- * Class to Encrypt/Decrypt data compatible
+ * Class to Encrypt/Decrypt Sync Mode data compatible
  *  with Laravel 5.8 Illuminate/Encryption/Encrypter.php (and maybe lower versions)
  *
  *  Only [aes-128-cbc] and [aes-256-cbc] algorithms are available
  *
  * Use:
- *      foo = new LaravelEncryptor({laravel_key})
+ *      foo = new LaravelEncryptorSync({key})
  *
  *      foo.encrypt('ferrets better than cats')
- *          return Promise [base64 string] of a serialized object {iv, encrypted, mac}
+ *          return [base64 string] of a serialized object {iv, encrypted, mac}
  *
  *      foo.decrypt(payload)
  *          payload: [base64 string] of a serialized or unserialized object {iv, encrypted, mac}
- *          return Promise decrypted value of payload.value
+ *          return decrypted value of payload.value
  */
-export class LaravelEncryptor {
+export class LaravelEncryptorSync {
 
     /** Cypher type */
     private algorithm: string;
@@ -39,8 +31,6 @@ export class LaravelEncryptor {
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
     private readonly valid_key_lengths = [32, 64];
 
-    /** array errors */
-    private errors: any;
 
     /**
      * Return new Laravel Encryptor
@@ -52,9 +42,7 @@ export class LaravelEncryptor {
         if (this.options.laravel_key)
             console.log('Laravel Encryptor, laravel_key is depreciated, please use key instead');
 
-        const key = this.options.laravel_key ? this.options.laravel_key: this.options.key;
-
-        this.errors = [];
+        const key = this.options.laravel_key ? this.options.laravel_key : this.options.key;
 
         this.setAlgorithm();
 
@@ -70,7 +58,7 @@ export class LaravelEncryptor {
      */
     private setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
-            this.errors.push(new Error('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.'));
+            throw new Error('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
 
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
@@ -83,74 +71,39 @@ export class LaravelEncryptor {
      *
      * @param serialize
      */
-    public encrypt(data: any, serialize?: boolean): Promise<any> {
-
-        if (this.is_there_any_errors()) return Promise.reject(this.returnError());
+    public encrypt(data: any, serialize?: boolean): string {
 
         serialize = (serialize !== undefined) ? serialize : true;
 
-        const payload = serialize ? LaravelEncryptor.serialize(data) : data;
+        const payload = serialize ? LaravelEncryptorSync.serialize(data) : data;
 
-        return this
-            .encryptIt(payload)
-            .then(LaravelEncryptor.stringifyAndBase64, LaravelEncryptor.throwError)
+        return LaravelEncryptorSync.stringifyAndBase64(this.encryptIt(payload))
     }
 
     /**
      * encryptIt
      *
      * @param data serialized
-     * @return Promise object {iv, value, mac}
+     * @return object {iv, value, mac}
      */
-    private encryptIt(data): Promise<any> {
-        return this
-            .generate_iv()
-            .then(this.createCypherIv())
-            .then(this.cipherIt(data))
-            .then(this.generateEncryptedObject())
-    }
-
-    /**
-     * crypto createCipheriv
-     *
-     * @return Promise crypto cipher
-     */
-    private createCypherIv(): any {
-        return (iv) => {
-            try {
-                 return {iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv)};
-            } catch (e) {
-                throw e
-            }
-        }
-    }
-
-    /**
-     * generate Laravel Encrypted Object
-     *
-     * @param data
-     */
-    private cipherIt(data) {
-        return ({iv, cipher}: any) => {
-            return {
-                iv,
-                value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
-            };
-        }
+    private encryptIt(data): any {
+        const buf = crypto.randomBytes(8);
+        let iv = buf.toString('hex');
+        let cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
+        let value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+        return this.generateEncryptedObject({iv, value})
     }
 
     /**
      * generate Laravel Encrypted Object
      */
-    private generateEncryptedObject() {
-        return ({iv, value}: any) => {
-            iv = LaravelEncryptor.toBase64(iv);
-            return {
-                iv,
-                value,
-                mac: this.hashIt(iv, value)
-            };
-        }
+    private generateEncryptedObject({iv, value}: any) {
+        iv = LaravelEncryptorSync.toBase64(iv);
+        return {
+            iv,
+            value,
+            mac: this.hashIt(iv, value)
+        };
     }
 
     /**
@@ -160,9 +113,6 @@ export class LaravelEncryptor {
      * @param serialize
      */
     public decrypt(data, serialize?: boolean): Promise<string> {
-
-        if (this.is_there_any_errors()) return Promise.reject(this.returnError());
-
         return this.decryptIt(data, serialize)
     }
 
@@ -177,71 +127,27 @@ export class LaravelEncryptor {
 
         serialize = (serialize !== undefined) ? serialize : true;
 
-        payload = LaravelEncryptor.base64ToUtf8(payload);
+        payload = LaravelEncryptorSync.base64ToUtf8(payload);
 
         try {
             payload = JSON.parse(payload);
         } catch (e) {
-            return Promise.reject(e);
+            throw e;
         }
 
-        return this
-            .createDecipheriv(payload.iv)
-            .then(this.cryptoDecipher(payload))
-            .then(this.ifSerialized_unserialize(serialize), LaravelEncryptor.throwError)
-    }
-
-    /**
-     * crypto createDecipheriv
-     *
-     * @param iv
-     * @return Promise crypto decipher
-     */
-    private createDecipheriv(iv): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                const deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
-                resolve(deCipher)
-            } catch (e) {
-                reject(e)
-            }
-        })
-    }
-
-    /**
-     * cryptoDecipher
-     *
-     * @param payload
-     */
-    private cryptoDecipher(payload) {
-        return (deCipher) => {
-            return deCipher.update(payload.value, 'base64', 'utf8') + deCipher.final('utf8');
-        }
+        const deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(payload.iv, 'base64'));
+        let deciphered = deCipher.update(payload.value, 'base64', 'utf8') + deCipher.final('utf8');
+        return this.ifSerialized_unserialize(deciphered, serialize);
     }
 
     /**
      * ifSerialized_unserialize
      *
+     * @param decrypted
      * @param serialize
      */
-    private ifSerialized_unserialize(serialize){
-        return (decrypted) => {
-            return serialize ? LaravelEncryptor.unSerialize(decrypted) : decrypted;
-        }
-    }
-
-    /**
-     * Generate 8 bytes IV
-     *
-     * @return Promise [16 hexadecimal string]
-     */
-    private generate_iv(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(8, (err, buffer) => {
-                if (err) return reject(err);
-                resolve(buffer.toString('hex'))
-            });
-        });
+    private ifSerialized_unserialize(decrypted, serialize) {
+        return serialize ? LaravelEncryptorSync.unSerialize(decrypted) : decrypted;
     }
 
     /**
@@ -293,9 +199,9 @@ export class LaravelEncryptor {
      * @return hex string
      */
     private hashIt(iv, encrypted): any {
-        const hmac = LaravelEncryptor.createHmac("sha256", this.secret);
+        const hmac = LaravelEncryptorSync.createHmac("sha256", this.secret);
         return hmac
-            .update(LaravelEncryptor.setHmacPayload(iv, encrypted))
+            .update(LaravelEncryptorSync.setHmacPayload(iv, encrypted))
             .digest("hex");
     }
 
@@ -319,23 +225,6 @@ export class LaravelEncryptor {
         return Buffer.from(iv + encrypted, 'utf-8')
     }
 
-    /**
-     * is_there_any_errors
-     */
-    private is_there_any_errors(): boolean {
-
-        return this.errors.length >= 1;
-    }
-
-    /**
-     * returnError
-     *
-     * will return first error in this.errors
-     *  if there is an error will push it to errors (and return as reject at public methods)
-     */
-    private returnError() {
-        return this.errors[0];
-    }
 
     /**
      * stringifyAndBase64
@@ -350,21 +239,11 @@ export class LaravelEncryptor {
     }
 
     /**
-     * Throw Error.
-     *
-     * @param error
-     */
-    static throwError(error) {
-        throw error;
-    }
-
-    /**
      * Generate a random key for the application.
      *
      * @return string
      */
-    static generateRandomKey(length?: number)
-    {
+    static generateRandomKey(length?: number) {
         return new Promise((resolve, reject) => {
             length = length ? length : 32;
             crypto.randomBytes(length, (err, buffer) => {

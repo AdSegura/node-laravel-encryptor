@@ -15,9 +15,15 @@
   ],
   "homepage": "https://github.com/AdSegura/node-laravel-encryptor/blob/master/README.md",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run copy && tsc",
+    "copy": "npm run copy_test && npm run copy_itest && npm run copy_test_php ",
+    "copy_itest": "node_modules/.bin/copyfiles  -u 1 src/tests/integrator.js dist/",
+    "copy_test": "node_modules/.bin/copyfiles -u 1 src/tests/index.js dist/",
+    "copy_test_php": "node_modules/.bin/copyfiles -u 1 src/tests/php/* dist/",
     "dev": "tsc -w",
-    "test": "node_modules/.bin/_mocha --exit tests/index.js"
+    "integration_test": "node_modules/.bin/_mocha --exit dist/tests/integrator.js",
+    "unit_test": "node_modules/.bin/_mocha --exit dist/tests/index.js",
+    "test": "npm run unit_test && npm run integration_test"
   },
   "author": "Adolfo Segura Hall",
   "license": "ISC",
@@ -27,7 +33,11 @@
   "devDependencies": {
     "@types/node": "^12.7.3",
     "chai": "^4.2.0",
+    "chai-http": "^4.3.0",
+    "copyfiles": "^2.1.1",
+    "express": "^4.17.1",
     "mocha": "^6.2.0",
-    "typescript": "^2.9.2"
+    "typescript": "^2.9.2",
+    "uuid": "^3.3.3"
   }
 }
