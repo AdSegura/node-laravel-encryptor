@@ -23,7 +23,7 @@ If no algorithm is defined default is `AES-256-CBC`
 $> npm i node-laravel-encryptor
 ```
 
-## Use
+## Use Async mode
 ```js
 const {Encryptor} = require('node-laravel-encryptor');
 
@@ -40,6 +40,18 @@ encryptor
     .then(dec => console.log(dec));
 ```
 
+## Use Sync mode
+```js
+const {EncryptorSync} = require('node-laravel-encryptor');
+
+let encryptor = new EncryptorSync({
+    key: 'Laravel APP_KEY without base64:',
+});
+
+const enc = encryptor.encrypt({foo: 'bar'});
+
+console.log(encryptor.decrypt(enc))
+```
 ## Options 
 ###### Object  {key, key_length} 
 * key: APP_KEY without `base64:` 
@@ -82,19 +94,30 @@ To be able to run PHP test you must have installed:
 ```sh
 $> npm run test
 
-  node Laravel Encrypter
-    ✓ should cipher and decipher
-    ✓ should fail cipher and decipher object without serialize
-    ✓ should cipher and decipher with no key_length defined
-    ✓ should cipher and decipher with no serialize nor unserialize
-    ✓ should fail cipher not valid Laravel Key
-    ✓ should fail cipher not valid algorithm
-    ✓ should fail decipher not valid data
-    ✓ should cipher and decipher multiple times
-    ✓ should decipher data at Laravel correctly (52ms)
-    ✓ should decipher from Laravel correctly (51ms)
-
-
-  10 passing (128ms)
+    node Laravel Encrypter
+      ✓ should cipher and decipher
+      ✓ should fail cipher and decipher object without serialize
+      ✓ should cipher and decipher with no key_length defined
+      ✓ should cipher and decipher with no serialize nor unserialize
+      ✓ should fail cipher not valid Laravel Key
+      ✓ should fail cipher not valid algorithm
+      ✓ should fail decipher not valid data
+      ✓ should cipher and decipher multiple times
+      ✓ should decipher data at Laravel correctly (52ms)
+      ✓ should decipher from Laravel correctly (50ms)
+      ✓ should cipher and decipher Sync Mode
+      ✓ should decipher data, Sync Mode, at Laravel correctly (45ms)
+  
+  
+    12 passing (173ms)
+    
+    Express Crypto Cookie Compatible with Laravel
+      ✓ should create one request to Express aSync Mode, receive cookie and decipher (41ms)
+      ✓ should create one request to Express Sync Mode, receive cookie and decipher
+      ✓ should create multiple parallel requests to Express aSync Mode, receive cookie and decipher
+      ✓ should create multiple parallel requests to Express Sync Mode, receive cookie and decipher
+  
+  
+    4 passing (83ms)
 
 ```

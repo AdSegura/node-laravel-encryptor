@@ -38,6 +38,11 @@ class ExpressServer {
                 .catch(this.errorAndNext(next));
         };
     }
+    stupidMiddleware() {
+        return (req, res, next) => {
+            next();
+        };
+    }
     response(name, res, next) {
         return (enc) => {
             this.setCookie(name, res)(enc);
