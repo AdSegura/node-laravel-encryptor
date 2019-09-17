@@ -98,19 +98,17 @@ describe('node Laravel Encrypter', function () {
     });
 
     it('should fail cipher not valid algorithm', done => {
-        const encryptor = new LaravelEncryptor({
-            key,
-            key_length: 31
-        });
 
-        encryptor
-            .encrypt(text)
-            .then()
-            .catch(e => {
-                expect(e.message)
-                    .equal('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
-                done()
-            })
+        try {
+            new LaravelEncryptor({
+                key,
+                key_length: 31
+            });
+        }catch (e) {
+            expect(e.message)
+                .equal('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            done()
+        }
     });
 
     it('should fail decipher not valid data', done => {

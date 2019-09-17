@@ -48,6 +48,12 @@ export class ExpressServer {
         }
     }
 
+    stupidMiddleware(){
+        return (req, res, next) => {
+            next();
+        };
+    }
+
     /**
      *
      * @param name
