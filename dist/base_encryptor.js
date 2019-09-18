@@ -20,6 +20,11 @@ class Base_encryptor {
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
+    static prepareData(data, serialize) {
+        data = Base_encryptor.numberToString(data);
+        serialize = (serialize !== undefined) ? serialize : true;
+        return serialize ? Base_encryptor.serialize(data) : data;
+    }
     ifSerialized_unserialize(decrypted, serialize) {
         return serialize ? Base_encryptor.unSerialize(decrypted) : decrypted;
     }
@@ -51,15 +56,13 @@ class Base_encryptor {
         encrypted = JSON.stringify(encrypted);
         return Buffer.from(encrypted).toString('base64');
     }
+    static numberToString(data) {
+        return (typeof data === 'number') ? data + '' : data;
+    }
     static generateRandomKey(length) {
-        return new Promise((resolve, reject) => {
-            length = length ? length : 32;
-            crypto.randomBytes(length, (err, buffer) => {
-                if (err)
-                    return reject(err);
-                resolve(buffer.toString('base64'));
-            });
-        });
+        length = length ? length : 32;
+        const buf = crypto.randomBytes(length);
+        return buf.toString('base64');
     }
 }
 exports.Base_encryptor = Base_encryptor;

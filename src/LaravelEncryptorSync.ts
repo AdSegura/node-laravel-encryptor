@@ -37,9 +37,7 @@ export class LaravelEncryptorSync extends Base_encryptor {
      */
     public encrypt(data: any, serialize?: boolean): string {
 
-        serialize = (serialize !== undefined) ? serialize : true;
-
-        const payload = serialize ? LaravelEncryptorSync.serialize(data) : data;
+        const payload  = LaravelEncryptorSync.prepareData(data, serialize);
 
         return LaravelEncryptorSync.stringifyAndBase64(this.encryptIt(payload))
     }
@@ -47,7 +45,7 @@ export class LaravelEncryptorSync extends Base_encryptor {
     /**
      * encryptIt
      *
-     * @param data serialized
+     * @param data
      * @return object {iv, value, mac}
      */
     private encryptIt(data): any {

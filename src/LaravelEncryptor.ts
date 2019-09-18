@@ -45,9 +45,7 @@ export class LaravelEncryptor extends Base_encryptor {
      */
     public encrypt(data: any, serialize?: boolean): Promise<any> {
 
-        serialize = (serialize !== undefined) ? serialize : true;
-
-        const payload = serialize ? LaravelEncryptor.serialize(data) : data;
+        const payload  = LaravelEncryptor.prepareData(data, serialize);
 
         return this
             .encryptIt(payload)

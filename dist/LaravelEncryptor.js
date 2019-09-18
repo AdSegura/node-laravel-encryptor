@@ -7,8 +7,7 @@ class LaravelEncryptor extends base_encryptor_1.Base_encryptor {
         super(options);
     }
     encrypt(data, serialize) {
-        serialize = (serialize !== undefined) ? serialize : true;
-        const payload = serialize ? LaravelEncryptor.serialize(data) : data;
+        const payload = LaravelEncryptor.prepareData(data, serialize);
         return this
             .encryptIt(payload)
             .then(LaravelEncryptor.stringifyAndBase64, LaravelEncryptor.throwError);

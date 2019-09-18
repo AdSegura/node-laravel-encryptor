@@ -15,7 +15,8 @@
   "files": [
     "src/index.ts",
     "src/call.ts",
-    "src/tests/express-server.ts"
+    "src/tests/express-server.ts",
+    "src/tests/start-server.ts"
   ],
   "exclude": [
     "node_modules"

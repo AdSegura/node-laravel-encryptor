@@ -60,7 +60,7 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
             })
     });
 
-    it('should create multiple parallel requests to Express aSync Mode, receive cookie and decipher',  done => {
+    it('should create multiple requests to Express aSync Mode, receive cookie and decipher',  done => {
 
         options.async = true;
         const server = new ExpressServer(options);
@@ -82,7 +82,30 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
             })
     });
 
-    it('should create multiple parallel requests to Express Sync Mode, receive cookie and decipher',  done => {
+    it('should create multiple requests to Express Sync Mode, receive cookie and decipher',  done => {
+
+        options.async = false;
+        const server = new ExpressServer(options);
+        const requester = chai.request.agent(server).keepOpen();
+
+        const promises = [
+            requester.get('/'),requester.get('/')
+        ];
+
+        Promise.all(promises)
+            .then(res => {
+                res.map(response => {
+                    expect(decipher(response, false)).equals(server_id)
+                })
+            })
+            .then(() => {
+                requester.close();
+                done();
+            })
+    });
+
+
+    it('should create multiple requests to Express Sync Mode, receive cookie and decipher',  done => {
 
         options.async = false;
         const server = new ExpressServer(options);

@@ -211,4 +211,26 @@ describe('node Laravel Encrypter', function () {
             done()
         });
     });
+
+    it('should cipher and decipher a number', done => {
+
+        const serialize = false;
+
+        const number = 1;
+
+        const encryptor = new LaravelEncryptor({
+            key
+        });
+
+        encryptor
+            .encrypt(number, serialize)
+            .then(enc => {
+                encryptor
+                    .decrypt(enc, serialize)
+                    .then(res => {
+                        expect(parseInt(res)).equal(number);
+                        done()
+                    })
+            })
+    });
 });

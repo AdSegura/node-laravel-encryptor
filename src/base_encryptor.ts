@@ -51,6 +51,23 @@ export class Base_encryptor {
     }
 
     /**
+     * Prepare Data
+     *  will receive data from this.encrypt(data)
+     *  and check if is a number to convert to string,
+     *  return data serialized if need it
+     *
+     * @param data
+     * @param serialize
+     */
+    static prepareData(data, serialize){
+        data = Base_encryptor.numberToString(data);
+
+        serialize = (serialize !== undefined) ? serialize : true;
+
+        return serialize ? Base_encryptor.serialize(data) : data;
+    }
+
+    /**
      * ifSerialized_unserialize
      *
      * @param decrypted
@@ -147,17 +164,23 @@ export class Base_encryptor {
     }
 
     /**
+     * number To String
+     *  if data is a number convert to string
+     *
+     * @param data
+     */
+    static numberToString(data){
+        return (typeof data === 'number') ?  data + '' : data;
+    }
+
+    /**
      * Generate a random key for the application.
      *
      * @return string
      */
-    static generateRandomKey(length?: number) {
-        return new Promise((resolve, reject) => {
-            length = length ? length : 32;
-            crypto.randomBytes(length, (err, buffer) => {
-                if (err) return reject(err);
-                resolve(buffer.toString('base64'))
-            });
-        })
+    static generateRandomKey(length?: number): string {
+        length = length ? length : 32;
+        const buf = crypto.randomBytes(length);
+        return buf.toString('base64');
     }
 }
