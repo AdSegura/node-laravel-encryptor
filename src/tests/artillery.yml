@@ -1,0 +1,35 @@
+config:
+  target: 'http://localhost:9999'
+  plugins:
+    expect: {}
+  phases:
+    - duration: 100
+      arrivalRate: 20
+  processor: "./artillery-func.js"
+scenarios:
+  - name: "Integration Test, parallel request"
+    flow:
+      - loop:
+        - get:
+            url: "/?id={{$loopCount}}"
+            afterResponse: "encryptor"
+            capture:
+              - json: "$.id"
+                as: id
+              - json: "$.encrypted"
+                as: encrypted
+            expect:
+              - statusCode: 200
+              - contentType: json
+              - hasProperty: encrypted
+              - hasProperty: id
+              - equals:
+                  - "{{ id }}"
+                  - "{{ $loopCount }}"
+        count: 10
+  - name: "Integration Test, parallel request no loop"
+    flow:
+      - get:
+          url: "/?id=8"
+
+

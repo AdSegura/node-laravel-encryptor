@@ -11,11 +11,17 @@ class ExpressServer {
         this.cookie_opt = this.cookie_params(this.options.cookie_opt);
         this.server_id = this.options.server_id;
         if (options.async) {
-            this.cookieMiddleware = this.cookieAsync(options.cookie, this.server_id, false);
+            if (!options.artillery)
+                this.cookieMiddleware = this.cookieAsync(options.cookie, this.server_id, false);
+            else
+                this.cookieMiddleware = this.stupidMiddlewareAsync(false);
             this.cipher = new Encryptor(this.options);
         }
         else {
-            this.cookieMiddleware = this.cookieSync(options.cookie, this.server_id, false);
+            if (!options.artillery)
+                this.cookieMiddleware = this.cookieSync(options.cookie, this.server_id, false);
+            else
+                this.cookieMiddleware = this.stupidMiddlewareSync(false);
             this.cipher = new EncryptorSync(this.options);
         }
     }
@@ -38,9 +44,26 @@ class ExpressServer {
                 .catch(this.errorAndNext(next));
         };
     }
-    stupidMiddleware() {
+    stupidMiddlewareSync(serialize = true) {
         return (req, res, next) => {
-            next();
+            try {
+                res.enc = this.cipher.encrypt(req.query.id, serialize);
+                next();
+            }
+            catch (e) {
+                return this.errorAndNext(next)(e);
+            }
+        };
+    }
+    stupidMiddlewareAsync(serialize = true) {
+        return (req, res, next) => {
+            this.cipher
+                .encrypt(req.query.id, serialize)
+                .then(enc => {
+                res.enc = enc;
+                next();
+            })
+                .catch(this.errorAndNext(next));
         };
     }
     response(name, res, next) {
@@ -76,15 +99,16 @@ class ExpressServer {
             next(error);
         };
     }
-    listen(port) {
+    listen(port, cb) {
         this.express.use(this.cookieMiddleware);
         this.express.use(this.logErrors);
         this.express.use(this.clientErrorHandler);
         this.express.use(this.errorHandler);
         this.api();
         this.httpServer = http.createServer(this.express);
-        this.server = this.httpServer.listen(port);
-        return this.server;
+        this.server = this.httpServer.listen(port, cb);
+        if (!cb)
+            return this.server;
     }
     address() {
         return false;
@@ -94,8 +118,14 @@ class ExpressServer {
     }
     api() {
         this.express.get('/', (req, res, next) => this.getRoot(req, res, next));
+        this.express.get('/integrator', (req, res, next) => this.getIntegrator(req, res, next));
     }
     getRoot(req, res, next) {
+        if (!req.query.id)
+            return res.send('error');
+        res.json({ id: req.query.id, encrypted: res.enc });
+    }
+    getIntegrator(req, res, next) {
         res.send('ok');
     }
     logErrors(err, req, res, next) {

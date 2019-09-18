@@ -1,7 +1,7 @@
 {
   "name": "node-laravel-encryptor",
   "module": "dist/index.js",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "node version Laravel encrypt",
   "main": "dist/index.js",
   "repository": {
@@ -23,7 +23,10 @@
     "dev": "tsc -w",
     "integration_test": "node_modules/.bin/_mocha --exit dist/tests/integrator.js",
     "unit_test": "node_modules/.bin/_mocha --exit dist/tests/index.js",
-    "test": "npm run unit_test && npm run integration_test"
+    "test": "npm run unit_test && npm run integration_test",
+    "artillery": "artillery run src/tests/artillery.yml",
+    "artillery_server_async": "node dist/tests/start-server.js 1",
+    "artillery_server_sync": "node dist/tests/start-server.js"
   },
   "author": "Adolfo Segura Hall",
   "license": "ISC",

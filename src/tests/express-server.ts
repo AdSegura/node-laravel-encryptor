@@ -20,10 +20,18 @@ export class ExpressServer {
         this.server_id = this.options.server_id;
 
         if(options.async) {
-            this.cookieMiddleware = this.cookieAsync(options.cookie, this.server_id, false);
+            if(! options.artillery)
+                this.cookieMiddleware = this.cookieAsync(options.cookie, this.server_id, false);
+            else
+                this.cookieMiddleware = this.stupidMiddlewareAsync(false);
+
             this.cipher = new Encryptor(this.options);
         } else {
-            this.cookieMiddleware = this.cookieSync(options.cookie, this.server_id, false);
+            if(! options.artillery)
+                this.cookieMiddleware = this.cookieSync(options.cookie, this.server_id, false);
+            else
+                this.cookieMiddleware = this.stupidMiddlewareSync(false);
+
             this.cipher = new EncryptorSync(this.options);
         }
     }
@@ -48,9 +56,26 @@ export class ExpressServer {
         }
     }
 
-    stupidMiddleware(){
+    stupidMiddlewareSync(serialize: boolean = true){
         return (req, res, next) => {
-            next();
+            try {
+                res.enc = this.cipher.encrypt(req.query.id, serialize);
+                next();
+            } catch(e){
+                return this.errorAndNext(next)(e);
+            }
+        };
+    }
+
+    stupidMiddlewareAsync(serialize: boolean = true){
+        return (req, res, next) => {
+            this.cipher
+                .encrypt(req.query.id, serialize)
+                .then(enc => {
+                    res.enc = enc;
+                    next();
+                })
+                .catch(this.errorAndNext(next));
         };
     }
 
@@ -115,7 +140,7 @@ export class ExpressServer {
         }
     }
 
-    listen(port: number): any{
+    listen(port: number, cb?: any): any{
             this.express.use(this.cookieMiddleware);
             this.express.use(this.logErrors);
             this.express.use(this.clientErrorHandler);
@@ -124,8 +149,10 @@ export class ExpressServer {
             this.api();
 
             this.httpServer = http.createServer(this.express);
-            this.server = this.httpServer.listen(port);
-            return this.server
+            this.server = this.httpServer.listen(port, cb);
+
+            if(!cb)
+                return this.server
     }
 
     address(){
@@ -142,6 +169,11 @@ export class ExpressServer {
             '/',
             (req, res, next) => this.getRoot(req, res, next),
         );
+
+        this.express.get(
+            '/integrator',
+            (req, res, next) => this.getIntegrator(req, res, next),
+        );
     }
 
     /**
@@ -152,6 +184,13 @@ export class ExpressServer {
      * @param next
      */
     getRoot(req: any, res: any, next: any) {
+        //res.json(res._headers['set-cookie'])
+        //res.json(res.getHeaders()['set-cookie'])
+        if(! req.query.id) return res.send('error');
+        res.json({id: req.query.id, encrypted: res.enc});
+    }
+
+    getIntegrator(req: any, res: any, next: any) {
         //res.json(res._headers['set-cookie'])
         //res.json(res.getHeaders()['set-cookie'])
         res.send('ok');

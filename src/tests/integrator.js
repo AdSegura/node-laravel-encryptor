@@ -9,7 +9,7 @@ const chaiHttp = require('chai-http');
 const {EncryptorSync} = require('../../');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const server_id = uuid();
-
+const url = '/integrator';
 const options = {
     cookie: 'cryptocookie',
     server_id,
@@ -19,6 +19,13 @@ const options = {
 chai.use(chaiHttp);
 const encryptor = new EncryptorSync({key});
 
+/**
+ * parse cookie
+ *
+ * @param response
+ * @param unserialize
+ * @return {*}
+ */
 const decipher = (response, unserialize) => {
     const cookieAccess = new Cookie();
     const cookie = cookieAccess.parse(response.res.headers['set-cookie'][0]);
@@ -34,7 +41,7 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
         const requester = chai.request.agent(server).keepOpen();
 
 
-         requester.get('/')
+         requester.get(url)
             .then(response => {
                 expect(decipher(response, false)).equals(server_id)
             })
@@ -50,76 +57,9 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
         const server = new ExpressServer(options);
         const requester = chai.request.agent(server).keepOpen();
 
-        requester.get('/')
+        requester.get(url)
             .then(response => {
                 expect(decipher(response, false)).equals(server_id)
-            })
-            .then(() => {
-                requester.close();
-                done();
-            })
-    });
-
-    it('should create multiple requests to Express aSync Mode, receive cookie and decipher',  done => {
-
-        options.async = true;
-        const server = new ExpressServer(options);
-        const requester = chai.request.agent(server).keepOpen();
-
-        const promises = [
-            requester.get('/'),requester.get('/')
-        ];
-
-        Promise.all(promises)
-            .then(res => {
-                res.map(response => {
-                    expect(decipher(response, false)).equals(server_id)
-                })
-            })
-            .then(() => {
-                requester.close();
-                done();
-            })
-    });
-
-    it('should create multiple requests to Express Sync Mode, receive cookie and decipher',  done => {
-
-        options.async = false;
-        const server = new ExpressServer(options);
-        const requester = chai.request.agent(server).keepOpen();
-
-        const promises = [
-            requester.get('/'),requester.get('/')
-        ];
-
-        Promise.all(promises)
-            .then(res => {
-                res.map(response => {
-                    expect(decipher(response, false)).equals(server_id)
-                })
-            })
-            .then(() => {
-                requester.close();
-                done();
-            })
-    });
-
-
-    it('should create multiple requests to Express Sync Mode, receive cookie and decipher',  done => {
-
-        options.async = false;
-        const server = new ExpressServer(options);
-        const requester = chai.request.agent(server).keepOpen();
-
-        const promises = [
-            requester.get('/'),requester.get('/')
-        ];
-
-        Promise.all(promises)
-            .then(res => {
-                res.map(response => {
-                    expect(decipher(response, false)).equals(server_id)
-                })
             })
             .then(() => {
                 requester.close();
