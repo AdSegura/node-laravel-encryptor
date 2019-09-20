@@ -17,6 +17,13 @@ export class ExpressServer {
     constructor(private options: any){
 
         this.express = new express();
+
+        (() => {
+            this.express.response.cookie_cryp = (name, data, res) => {
+                res.cookie(name, this.cipher.encryptSync(data));
+            }
+        })();
+
         this.cookie_opt = this.cookie_params(this.options.cookie_opt);
         this.server_id = this.options.server_id;
 
@@ -171,8 +178,7 @@ export class ExpressServer {
             this.httpServer = http.createServer(this.express);
             this.server = this.httpServer.listen(port, cb);
 
-            if(!cb)
-                return this.server
+            if(!cb) return this.server
     }
 
     address(){
@@ -199,8 +205,17 @@ export class ExpressServer {
             '/readcookie',
             (req, res, next) => this.getReadCookie(req, res, next),
         );
+
+        this.express.get(
+            '/mid',
+            (req, res, next) => this.mid(req, res, next),
+        );
     }
 
+    mid(req: any, res: any, next: any) {
+        res.cookie_cryp('superdope', {foo: 1111}, res);
+        res.json({id: 1});
+    }
     /**
      * Outputs a simple message to show that the server is running.
      *
@@ -216,14 +231,10 @@ export class ExpressServer {
     }
 
     getIntegrator(req: any, res: any, next: any) {
-        //res.json(res._headers['set-cookie'])
-        //res.json(res.getHeaders()['set-cookie'])
         res.send('ok');
     }
 
    getReadCookie(req: any, res: any, next: any) {
-        //res.json(res._headers['set-cookie']
-       console.log(req.cookies)
         res.send(req.cookies['cryptocookie'])
     }
 

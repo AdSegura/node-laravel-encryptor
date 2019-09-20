@@ -52,6 +52,11 @@ export class Base_encryptor {
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
 
+    /**
+     * decryptIt
+     *
+     * @param payload
+     */
     protected decryptIt(payload){
 
         payload = Base_encryptor.base64ToUtf8(payload);
@@ -59,12 +64,31 @@ export class Base_encryptor {
         try {
             payload = JSON.parse(payload);
         } catch (e) {
-            throw new Error('Encryptor decripIt cannot parse json')
+            throw new Error('Encryptor decryptIt cannot parse json')
         }
 
+        //TODO check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return Base_encryptor.ifSerialized_unserialize(decrypted)
+    }
+
+    /**
+     * encryptIt
+     *
+     * @param data
+     * @return object {iv, value, mac}
+     */
+    protected encryptItSync(data): any {
+        const buf = crypto.randomBytes(this.random_bytes);
+
+        const iv = buf.toString('hex');
+
+        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
+
+        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+
+        return this.generateEncryptedObject()({iv, value})
     }
 
     /**

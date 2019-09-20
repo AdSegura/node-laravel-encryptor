@@ -9,6 +9,11 @@ class ExpressServer {
     constructor(options) {
         this.options = options;
         this.express = new express();
+        (() => {
+            this.express.response.cookie_cryp = (name, data, res) => {
+                res.cookie(name, this.cipher.encryptSync(data));
+            };
+        })();
         this.cookie_opt = this.cookie_params(this.options.cookie_opt);
         this.server_id = this.options.server_id;
         if (options.async) {
@@ -135,6 +140,11 @@ class ExpressServer {
         this.express.get('/', (req, res, next) => this.getRoot(req, res, next));
         this.express.get('/integrator', (req, res, next) => this.getIntegrator(req, res, next));
         this.express.get('/readcookie', (req, res, next) => this.getReadCookie(req, res, next));
+        this.express.get('/mid', (req, res, next) => this.mid(req, res, next));
+    }
+    mid(req, res, next) {
+        res.cookie_cryp('superdope', { foo: 1111 }, res);
+        res.json({ id: 1 });
     }
     getRoot(req, res, next) {
         if (!req.query.id)
@@ -145,7 +155,6 @@ class ExpressServer {
         res.send('ok');
     }
     getReadCookie(req, res, next) {
-        console.log(req.cookies);
         res.send(req.cookies['cryptocookie']);
     }
     logErrors(err, req, res, next) {

@@ -16,13 +16,6 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
         const payload = Encryptor.prepareData(data);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload));
     }
-    encryptItSync(data) {
-        const buf = crypto.randomBytes(this.random_bytes);
-        const iv = buf.toString('hex');
-        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
-        return this.generateEncryptedObject()({ iv, value });
-    }
     encryptIt(data) {
         return this
             .generate_iv()
@@ -62,6 +55,19 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
     }
     static throwError(error) {
         throw error;
+    }
+    static static_decipher(key, data) {
+        const encrypt = new Encryptor({ key });
+        return encrypt.decryptIt(data);
+    }
+    static static_cipher(key, data, cb) {
+        const encrypt = new Encryptor({ key });
+        if (typeof cb === 'function')
+            encrypt.encrypt(data)
+                .then(enc => cb(null, enc))
+                .catch(e => cb(e));
+        else
+            return encrypt.encryptSync(data);
     }
 }
 exports.Encryptor = Encryptor;

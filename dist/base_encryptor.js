@@ -32,6 +32,13 @@ class Base_encryptor {
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return Base_encryptor.ifSerialized_unserialize(decrypted);
     }
+    encryptItSync(data) {
+        const buf = crypto.randomBytes(this.random_bytes);
+        const iv = buf.toString('hex');
+        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
+        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+        return this.generateEncryptedObject()({ iv, value });
+    }
     generateEncryptedObject() {
         return ({ iv, value }) => {
             iv = Base_encryptor.toBase64(iv);

@@ -1,4 +1,5 @@
 import {Base_encryptor} from "./base_encryptor";
+import {type} from "os";
 const crypto = require('crypto');
 
 // Cipher steps:
@@ -63,23 +64,6 @@ export class Encryptor extends Base_encryptor {
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload))
     }
 
-    /**
-     * encryptIt
-     *
-     * @param data
-     * @return object {iv, value, mac}
-     */
-    private encryptItSync(data): any {
-        const buf = crypto.randomBytes(this.random_bytes);
-
-        const iv = buf.toString('hex');
-
-        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-
-        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
-
-        return this.generateEncryptedObject()({iv, value})
-    }
 
     /**
      * encryptIt
@@ -110,7 +94,7 @@ export class Encryptor extends Base_encryptor {
     }
 
     /**
-     * generate Laravel Encrypted Object
+     * generate a la Laravel Encrypted Object
      *
      * @param data
      */
@@ -153,5 +137,35 @@ export class Encryptor extends Base_encryptor {
      */
     static throwError(error) {
         throw error;
+    }
+
+    /**
+     * static_decipher
+     *  helper method
+     *
+     * @param key
+     * @param data
+     */
+    static static_decipher(key, data){
+        const encrypt = new Encryptor({key});
+        return encrypt.decryptIt(data)
+    }
+
+    /**
+     * static_cipher
+     *  helper method, run in sync mode
+     * @param key
+     * @param data
+     * @param cb
+     */
+    static static_cipher(key, data, cb?){
+        const encrypt = new Encryptor({key});
+
+        if(typeof cb === 'function')
+            encrypt.encrypt(data)
+                .then(enc => cb(null, enc))
+                .catch(e => cb(e));
+        else
+            return encrypt.encryptSync(data)
     }
 }
