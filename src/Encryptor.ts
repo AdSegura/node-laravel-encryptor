@@ -25,12 +25,12 @@ const crypto = require('crypto');
  *          payload: [base64 string] of a serialized or unserialized object {iv, encrypted, mac}
  *          return Promise decrypted value of payload.value
  */
-export class LaravelEncryptor extends Base_encryptor {
+export class Encryptor extends Base_encryptor {
 
     /**
-     * Return new Async Encryptor
+     * Return new Encryptor
      *
-     * @param options {key: string, key_length?: number }
+     * @param options {key: string, key_length?: number, random_bytes?: number = 8 }
      */
     constructor(options) {
         super(options);
@@ -40,22 +40,50 @@ export class LaravelEncryptor extends Base_encryptor {
      * encrypt
      *
      * @param data string, Buffer, TypedArray, or DataView
-     *
-     * @param serialize
      */
-    public encrypt(data: any, serialize?: boolean): Promise<any> {
+    public encrypt(data: any): Promise<any> {
 
-        const payload  = LaravelEncryptor.prepareData(data, serialize);
+        const payload  = Encryptor.prepareData(data);
 
         return this
             .encryptIt(payload)
-            .then(LaravelEncryptor.stringifyAndBase64, LaravelEncryptor.throwError)
+            .then(Encryptor.stringifyAndBase64, Encryptor.throwError)
+    }
+
+    /**
+     * encrypt Sync mode
+     *
+     * @param data string, Buffer, TypedArray, or DataView
+     *
+     */
+    public encryptSync(data: any): string {
+
+        const payload  = Encryptor.prepareData(data);
+
+        return Encryptor.stringifyAndBase64(this.encryptItSync(payload))
     }
 
     /**
      * encryptIt
      *
-     * @param data serialized
+     * @param data
+     * @return object {iv, value, mac}
+     */
+    private encryptItSync(data): any {
+        const buf = crypto.randomBytes(this.random_bytes);
+
+        const iv = buf.toString('hex');
+
+        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
+
+        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+
+        return this.generateEncryptedObject()({iv, value})
+    }
+
+    /**
+     * encryptIt
+     *
      * @return Promise object {iv, value, mac}
      */
     private encryptIt(data): Promise<any> {
@@ -96,91 +124,12 @@ export class LaravelEncryptor extends Base_encryptor {
     }
 
     /**
-     * generate Laravel Encrypted Object
-     */
-    private generateEncryptedObject() {
-        return ({iv, value}: any) => {
-            iv = LaravelEncryptor.toBase64(iv);
-            return {
-                iv,
-                value,
-                mac: this.hashIt(iv, value)
-            };
-        }
-    }
-
-    /**
      * decrypt
      *
      * @param data
-     * @param serialize
      */
-    public decrypt(data, serialize?: boolean): Promise<string> {
-        return this.decryptIt(data, serialize)
-    }
-
-    /**
-     * decryptIt
-     *
-     * @param payload string
-     * @param serialize
-     * @return decrypted string
-     */
-    private decryptIt(payload, serialize?: boolean): Promise<any> {
-
-        serialize = (serialize !== undefined) ? serialize : true;
-
-        payload = LaravelEncryptor.base64ToUtf8(payload);
-
-        try {
-            payload = JSON.parse(payload);
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return this
-            .createDecipheriv(payload.iv)
-            .then(this.cryptoDecipher(payload))
-            .then(this.ifSerialized_unserialize(serialize), LaravelEncryptor.throwError)
-    }
-
-    /**
-     * crypto createDecipheriv
-     *
-     * @param iv
-     * @return Promise crypto decipher
-     */
-    private createDecipheriv(iv): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                const deCipher = crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
-                resolve(deCipher)
-            } catch (e) {
-                reject(e)
-            }
-        })
-    }
-
-    /**
-     * cryptoDecipher
-     *
-     * @param payload
-     */
-    private cryptoDecipher(payload) {
-        return (deCipher) => {
-            return deCipher.update(payload.value, 'base64', 'utf8') + deCipher.final('utf8');
-        }
-    }
-
-    /**
-     * ifSerialized_unserialize
-     *
-     * @param serialize
-     */
-    protected ifSerialized_unserialize(serialize){
-        return (decrypted) => {
-            return serialize ? LaravelEncryptor.unSerialize(decrypted) : decrypted;
-        }
+    public decrypt(data): any {
+        return this.decryptIt(data)
     }
 
     /**

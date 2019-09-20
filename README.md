@@ -35,24 +35,14 @@ let encryptor = new Encryptor({
 
 encryptor
     .encrypt({foo: 'bar'})
-    .then(enc => console.log(enc));
-
-encryptor
-    .decrypt(enc)
-    .then(dec => console.log(dec));
+    .then(enc => console.log(encryptor.decrypt(enc)));
 ```
 
 ## Use Sync mode
 ```js
-const {EncryptorSync} = require('node-laravel-encryptor');
+const enc = encryptor.encryptSync({foo: 'bar'});
 
-let encryptor = new EncryptorSync({
-    key: 'Laravel APP_KEY without base64:',
-});
-
-const enc = encryptor.encrypt({foo: 'bar'});
-
-console.log(encryptor.decrypt(enc))
+console.log(encryptor.decrypt(enc));
 ```
 ## Options 
 ###### Object  {key, key_length} 
@@ -66,17 +56,13 @@ if no `key_length` is given default is 64.
 
 ### encrypt
 arguments:
-* data: string
-* serialize: optional boolean, if data should be serialized before cipher
-
-if no `serialize` option is given default is to serialize.
+* data: string|object|number
 
 ### decrypt
 arguments:
-* data: string
-* serialize: optional boolean, if data should be unserialized after decipher
+* data: string|object|number
 
-if no `serialize` option is given default is to unserialize.
+Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
 # Tests
 

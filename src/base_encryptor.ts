@@ -6,7 +6,7 @@ export class Base_encryptor {
     /** Cypher type */
     protected algorithm: string;
 
-    /** Laravel's APP_KEY Buffer */
+    /** SECRET KEY Buffer */
     protected readonly secret: any;
 
     /** key length */
@@ -15,15 +15,15 @@ export class Base_encryptor {
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
     private readonly valid_key_lengths = [32, 64];
 
-    /** Bytes number for crypto.randomBytes */
-    protected readonly random_bytes = 8;
+    /** Bytes number for crypto.randomBytes default 8 */
+    protected random_bytes;
 
     /**
      * Return new Encryptor
      *
      * @param options {key: string, key_length?: number }
      */
-    constructor(protected options: { laravel_key?: string, key?: string, key_length?: number }) {
+    constructor(protected options: { laravel_key?: string, key?: string, key_length?: number , random_bytes?: number }) {
 
         if (this.options.laravel_key)
             console.log('DeprecationWarning: Laravel Encryptor, laravel_key is depreciated, please use key instead');
@@ -33,6 +33,8 @@ export class Base_encryptor {
         this.setAlgorithm();
 
         this.secret = Buffer.from(key, 'base64');
+
+        this.random_bytes = this.options.random_bytes ? this.options.random_bytes : 8;
     }
 
     /**
@@ -50,6 +52,55 @@ export class Base_encryptor {
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
 
+    protected decryptIt(payload){
+
+        payload = Base_encryptor.base64ToUtf8(payload);
+
+        try {
+            payload = JSON.parse(payload);
+        } catch (e) {
+            throw new Error('Encryptor decripIt cannot parse json')
+        }
+
+        const decipherIv = this.createDecipheriv(payload.iv);
+        const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
+        return Base_encryptor.ifSerialized_unserialize(decrypted)
+    }
+
+    /**
+     * generate Laravel Encrypted Object
+     */
+    protected generateEncryptedObject() {
+        return ({iv, value}: any) => {
+            iv = Base_encryptor.toBase64(iv);
+            return {
+                iv,
+                value,
+                mac: this.hashIt(iv, value)
+            };
+        }
+    }
+
+    /**
+     * crypto createDecipheriv
+     *
+     * @param iv
+     * @return crypto decipher
+     */
+    protected createDecipheriv(iv) {
+        return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+    }
+
+    /**
+     * cryptoDecipher
+     *
+     * @param payload
+     * @param decipher
+     */
+    static cryptoDecipher(payload, decipher) {
+        return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
+    }
+
     /**
      * Prepare Data
      *  will receive data from this.encrypt(data)
@@ -57,24 +108,23 @@ export class Base_encryptor {
      *  return data serialized if need it
      *
      * @param data
-     * @param serialize
      */
-    static prepareData(data, serialize){
-        data = Base_encryptor.numberToString(data);
+    static prepareData(data){
 
-        serialize = (serialize !== undefined) ? serialize : true;
+        if(! data) throw new Error('You are calling Encryptor without data to cipher');
 
-        return serialize ? Base_encryptor.serialize(data) : data;
+        data = Base_encryptor.ifNumberToString(data);
+
+        return Base_encryptor.ifObjectToString(data);
     }
 
     /**
      * ifSerialized_unserialize
      *
      * @param decrypted
-     * @param serialize
      */
-    protected ifSerialized_unserialize(decrypted, serialize) {
-        return serialize ? Base_encryptor.unSerialize(decrypted) : decrypted;
+    static ifSerialized_unserialize(decrypted) {
+        return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unSerialize(decrypted) : decrypted;
     }
 
     /**
@@ -99,6 +149,16 @@ export class Base_encryptor {
      */
     static serialize(data): any {
         return Serialize.serialize(data)
+    }
+
+    /**
+     * is serialize data
+     *
+     * @param data
+     * @return serialized data
+     */
+    static isSerialized(data): any {
+        return Serialize.isSerialized(data)
     }
 
     /**
@@ -164,12 +224,21 @@ export class Base_encryptor {
     }
 
     /**
+     * ifObjectToString serialize object
+     *
+     * @param data
+     */
+    static ifObjectToString(data){
+        return (typeof data === 'object') ?  Base_encryptor.serialize(data) : data;
+    }
+
+    /**
      * number To String
      *  if data is a number convert to string
      *
      * @param data
      */
-    static numberToString(data){
+    static ifNumberToString(data){
         return (typeof data === 'number') ?  data + '' : data;
     }
 

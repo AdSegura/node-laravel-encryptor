@@ -6,18 +6,22 @@ const {describe, it} = require("mocha");
 const {expect} = require("chai");
 const chai = require("chai");
 const chaiHttp = require('chai-http');
-const {EncryptorSync} = require('../../');
+const {Encryptor} = require('../../');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const server_id = uuid();
 const url = '/integrator';
 const options = {
     cookie: 'cryptocookie',
     server_id,
-    key
+    key,
+    cookie_opt: {
+        secure: false,
+        httpOnly: false
+    }
 };
 
 chai.use(chaiHttp);
-const encryptor = new EncryptorSync({key});
+const encryptor = new Encryptor({key});
 
 /**
  * parse cookie
@@ -26,10 +30,10 @@ const encryptor = new EncryptorSync({key});
  * @param unserialize
  * @return {*}
  */
-const decipher = (response, unserialize) => {
+const decipher = (response) => {
     const cookieAccess = new Cookie();
     const cookie = cookieAccess.parse(response.res.headers['set-cookie'][0]);
-    return encryptor.decrypt(decodeURIComponent(cookie.value), unserialize);
+    return encryptor.decrypt(decodeURIComponent(cookie.value));
 };
 
 describe('Express Crypto Cookie Compatible with Laravel', function () {
@@ -43,7 +47,7 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
 
          requester.get(url)
             .then(response => {
-                expect(decipher(response, false)).equals(server_id)
+                expect(decipher(response)).equals(server_id)
             })
             .then(() => {
                 requester.close();
@@ -59,12 +63,31 @@ describe('Express Crypto Cookie Compatible with Laravel', function () {
 
         requester.get(url)
             .then(response => {
-                expect(decipher(response, false)).equals(server_id)
+                expect(decipher(response)).equals(server_id)
             })
             .then(() => {
                 requester.close();
                 done();
             })
     });
+
+    /*it('should create one request to Express Sync Mode, get cipher cookie send back and be read by express',  done => {
+
+        options.async = false;
+        const server = new ExpressServer(options);
+        const requester = chai.request.agent(server);
+
+        requester.get(url)
+            .then(response => {
+                expect(decipher(response, false)).equals(server_id)
+                requester.get('/readcookie').then(response => {
+                    //console.log(response.res)
+                    //expect(res).equals(server_id)
+                }).then(() => {
+                    done();
+                })
+            })
+
+    });*/
 });
 

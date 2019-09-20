@@ -1,11 +1,11 @@
 import {ExpressServer} from "./express-server";
-import {LaravelEncryptor} from "../LaravelEncryptor";
-//const key = LaravelEncryptor.generateRandomKey();
 const key = 'c0gDOf2wqPLyJ8eZsmEcf8XPRyu24cSPcEZfGs12v78=';
 
 let aSync = false;
+let artillery = true;
 
 if(process.argv[2]) aSync = true;
+if(process.argv[3]) artillery = false;
 
 class StartServer {
     static start(options, cb?: any){
@@ -14,10 +14,19 @@ class StartServer {
     }
 }
 
+const options = {
+    key,
+    server_id: 1,
+    aSync,
+    artillery,
+    cookie:'cryptocookie',
+    cookie_opt: {
+        secure: false,
+        httpOnly: false
+    }
+}
+
 exports.newServer = StartServer
-    .start({
-        key,
-        server_id: 1,
-        aSync,
-        artillery: true
-    });
+    .start(options, (server) => {
+        console.log(`Server stated in aSync Mode: ${aSync}, Artillery test mode:${artillery}`);
+    } );

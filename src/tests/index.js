@@ -1,14 +1,18 @@
 const {describe, it} = require("mocha");
 const {expect} = require("chai");
 const exec = require('child_process').exec;
-const {LaravelEncryptor} = require('../');
 const {Encryptor} = require('../');
-const {EncryptorSync} = require('../');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};
 
-describe('node Laravel Encrypter', function () {
+const cipher = new Encryptor({key});
+
+const decipher = (data) => {
+    return cipher.decrypt(data);
+};
+
+describe('node Laravel Encryptor', function () {
 
     it('should cipher and decipher', done => {
 
@@ -20,70 +24,72 @@ describe('node Laravel Encrypter', function () {
         encryptor
             .encrypt(text)
             .then(enc => {
-                encryptor.decrypt(enc).then(res => {
-                    expect(res).equal(text);
-                    done()
-                })
-            })
+                const dec = encryptor.decrypt(enc);
+                expect(dec).equal(text);
+                done()
+            });
     });
 
-    it('should fail cipher and decipher object without serialize', done => {
+    it('should cipher and decipher object without serialize or stringify object', done => {
 
-        const encryptor = new Encryptor({
-            key,
-            key_length: 64
-        });
+        const encryptor = new Encryptor({key});
 
         encryptor
-            .encrypt(one_object, false)
-            .then()
-            .catch(e => {
-                expect(e.message).equals('The "data" argument must be one of type string, Buffer, TypedArray, or DataView. Received type object');
-                done()
+            .encrypt(one_object)
+            .then(res => {
+                expect(decipher(res)).to.have.property('foo').equals('bar');
+                done();
             })
     });
 
     it('should cipher and decipher with no key_length defined', done => {
 
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key
         });
 
         encryptor
             .encrypt(text)
             .then(enc => {
-                encryptor
-                    .decrypt(enc)
-                    .then(res => {
-                        expect(res).equal(text);
-                        done()
-                    })
+                const dec = encryptor.decrypt(enc);
+                expect(dec).equal(text);
+                done();
             })
     });
 
+    it('should cipher and decipher a number', done => {
 
-    it('should cipher and decipher with no serialize nor unserialize', done => {
+        const number = 1;
 
-        const serialize = false;
-
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key
         });
 
         encryptor
-            .encrypt(text, serialize)
+            .encrypt(number)
             .then(enc => {
-                encryptor
-                    .decrypt(enc, serialize)
-                    .then(res => {
-                        expect(res).equal(text);
-                        done()
-                    })
+                const dec = encryptor.decrypt(enc);
+                expect(parseInt(dec)).equal(number);
+                done();
             })
     });
 
+    it('should throw Error when data to encrypt is null', done => {
+
+        const encryptor = new Encryptor({key});
+
+        try{
+            encryptor
+                .encrypt(null)
+        }catch (e) {
+            expect(e.message).equal('You are calling Encryptor without data to cipher');
+            done();
+        }
+    });
+
+
     it('should fail cipher not valid Laravel Key', done => {
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key: 'foobarbaz'
         });
 
@@ -100,7 +106,7 @@ describe('node Laravel Encrypter', function () {
     it('should fail cipher not valid algorithm', done => {
 
         try {
-            new LaravelEncryptor({
+            new Encryptor({
                 key,
                 key_length: 31
             });
@@ -112,46 +118,22 @@ describe('node Laravel Encrypter', function () {
     });
 
     it('should fail decipher not valid data', done => {
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key,
         });
 
-        encryptor
-            .decrypt('foo')
-            .then()
-            .catch(e => {
-                expect(e.message)
-                    .equal('Unexpected token ~ in JSON at position 0');
-                done()
-            })
-    });
-
-    it('should cipher and decipher multiple times', done => {
-
-        const encryptor = new LaravelEncryptor({
-            key
-        });
-
-        const promises = [];
-
-        for (let i = 0; i <= 3; i++) {
-            promises.push(encryptor.encrypt(`foo-${i}`, false))
+        try {
+            encryptor.decrypt('foo');
+        }catch (e) {
+            expect(e.message)
+                .equal('Encryptor decripIt cannot parse json');
+            done()
         }
-
-        Promise.all(promises)
-            .then(res => {
-                res.map((enc, i) => {
-                    encryptor.decrypt(enc, false)
-                        .then(res => {
-                            expect(res).equal(`foo-${i}`)
-                        })
-                })
-            }).then(() => done())
-
     });
+
 
     it('should decipher data at Laravel correctly', done => {
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key
         });
 
@@ -170,7 +152,7 @@ describe('node Laravel Encrypter', function () {
 
     it('should decipher from Laravel correctly', done => {
 
-        const encryptor = new LaravelEncryptor({
+        const encryptor = new Encryptor({
             key
         });
 
@@ -178,30 +160,27 @@ describe('node Laravel Encrypter', function () {
             if (err) {
                 console.error(err)
             }
-            encryptor
-                .decrypt(stdout)
-                .then(decrypted => {
-                    expect(decrypted).hasOwnProperty('foo');
-                    expect(decrypted.foo).equal('bar');
-                    done()
-                })
-        });
 
+            const dec = encryptor.decrypt(stdout);
+            expect(dec).hasOwnProperty('foo');
+            expect(dec.foo).equal('bar');
+            done();
+        });
     });
 
     it('should cipher and decipher Sync Mode', done => {
 
-        const encryptor = new EncryptorSync({key});
-        let enc = encryptor.encrypt(text, false);
-        let dec = encryptor.decrypt(enc, false);
+        const encryptor = new Encryptor({key});
+        let enc = encryptor.encryptSync(text);
+        let dec = encryptor.decrypt(enc);
         expect(dec).equal(text);
         done();
     });
 
     it('should decipher data, Sync Mode, at Laravel correctly', done => {
-        const encryptor = new EncryptorSync({key});
+        const encryptor = new Encryptor({key});
 
-        let enc = encryptor.encrypt(one_object, true);
+        let enc = encryptor.encryptSync(one_object);
 
         exec(`php dist/tests/php/decrypt.php ${enc}`, function (err, stdout, stderr) {
             if (err) {
@@ -212,25 +191,4 @@ describe('node Laravel Encrypter', function () {
         });
     });
 
-    it('should cipher and decipher a number', done => {
-
-        const serialize = false;
-
-        const number = 1;
-
-        const encryptor = new LaravelEncryptor({
-            key
-        });
-
-        encryptor
-            .encrypt(number, serialize)
-            .then(enc => {
-                encryptor
-                    .decrypt(enc, serialize)
-                    .then(res => {
-                        expect(parseInt(res)).equal(number);
-                        done()
-                    })
-            })
-    });
 });
