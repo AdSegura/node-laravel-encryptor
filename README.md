@@ -89,32 +89,36 @@ To be able to run PHP test you must have installed:
 ```sh
 $> npm run test
 
-     node Laravel Encryptor
-       ✓ should cipher and decipher
-       ✓ should cipher and decipher object without serialize or stringify object
-       ✓ should cipher and decipher with no key_length defined
-       ✓ should cipher and decipher a number
-       ✓ should throw Error when data to encrypt is null
-       ✓ should throw Error when cipher with not valid Key
-       ✓ should throw Error when cipher with not valid algorithm
-       ✓ should throw Error when decipher not valid Json
-       ✓ should throw Error when decipher invalid MAC signature
-       ✓ should throw Error when decipher with invalid Payload
-       ✓ should throw Error when decipher with invalid iv length
-       ✓ should decipher data at Laravel correctly (54ms)
-       ✓ should decipher from Laravel correctly (49ms)
-       ✓ should cipher and decipher Sync Mode
-       ✓ should decipher data, Sync Mode, at Laravel correctly (46ms)
-   
-   
-     15 passing (178ms)
-   
-     Express Crypto Cookie Compatible with Laravel
-       ✓ should create one request to Express aSync Mode, receive cookie and decipher (56ms)
-       ✓ should create one request to Express Sync Mode, receive cookie and decipher
-   
-   
-     2 passing (78ms)
+  Testing node Laravel Encryptor
+    Test Encryptor Class
+      Test what type of Errors throw Encryptor
+        ✓ should throw EncryptorError Error Type
+      Test Encryptor Errors
+        ✓ should throw Error when data to encrypt is null
+        ✓ should throw Error when cipher with not valid Key
+        ✓ should throw Error when cipher with not valid algorithm
+        ✓ should throw Error when decipher not valid Json
+        ✓ should throw Error when decipher invalid MAC signature
+        ✓ should throw Error when decipher with invalid Payload
+        ✓ should throw Error when decipher with invalid iv length
+      Test Encryptor Cipher and Decipher 
+        ✓ should cipher and decipher
+        ✓ should cipher and decipher object without serialize or stringify object
+        ✓ should cipher and decipher with no key_length defined
+        ✓ should cipher and decipher a number
+        ✓ should cipher and decipher Sync Mode
+      Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
+        ✓ should decipher data at Laravel correctly (49ms)
+        ✓ should decipher from Laravel correctly (49ms)
+        ✓ should decipher data, Sync Mode, at Laravel correctly (51ms)
+    Test integration with express cookie
+      Express Crypto Cookie Compatible with Laravel
+        ✓ should create one request to Express aSync Mode, receive cookie and decipher (38ms)
+        ✓ should create one request to Express Sync Mode, receive cookie and decipher
+
+
+  18 passing (247ms)
+
 ```
 
 # Artillery test
