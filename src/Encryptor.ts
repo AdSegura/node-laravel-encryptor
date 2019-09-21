@@ -43,7 +43,7 @@ export class Encryptor extends Base_encryptor {
      */
     public encrypt(data: any): Promise<any> {
 
-        const payload  = Encryptor.prepareData(data);
+        const payload  = this.prepareData(data);
 
         return this
             .encryptIt(payload)
@@ -58,7 +58,7 @@ export class Encryptor extends Base_encryptor {
      */
     public encryptSync(data: any): string {
 
-        const payload  = Encryptor.prepareData(data);
+        const payload  = this.prepareData(data);
 
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload))
     }

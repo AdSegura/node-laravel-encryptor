@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Serialize = require('php-serialize');
+const Serialize_1 = require("./Serialize");
 const EncryptorError_1 = require("./EncryptorError");
 let crypto;
 try {
@@ -11,21 +11,27 @@ catch (e) {
 }
 class Base_encryptor {
     constructor(options) {
-        this.options = options;
         this.key_length = 64;
         this.valid_key_lengths = [32, 64];
-        if (this.options.laravel_key)
-            console.log('DeprecationWarning: Laravel Encryptor, laravel_key is depreciated, please use key instead');
-        const key = this.options.laravel_key ? this.options.laravel_key : this.options.key;
+        this.random_bytes = 8;
+        this.default_serialize_mode = 'json';
+        this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
+        this.secret = Buffer.from(this.options.key, 'base64');
+        this.serialize_driver = new Serialize_1.Serialize(this.options);
         this.setAlgorithm();
-        this.secret = Buffer.from(key, 'base64');
-        this.random_bytes = this.options.random_bytes ? this.options.random_bytes : 8;
+        this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
     setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
             Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
+    }
+    prepareData(data) {
+        if (!data)
+            Base_encryptor.throwError('You are calling Encryptor without data to cipher');
+        data = Base_encryptor.ifNumberToString(data);
+        return this.ifObjectToString(data);
     }
     decryptIt(payload) {
         payload = Base_encryptor.base64ToUtf8(payload);
@@ -41,7 +47,7 @@ class Base_encryptor {
             Base_encryptor.throwError('The MAC is invalid.');
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
-        return Base_encryptor.ifSerialized_unserialize(decrypted);
+        return this.ifserialized_unserialize(decrypted);
     }
     static validPayload(payload) {
         return payload.hasOwnProperty('iv') && payload.hasOwnProperty('value') && payload.hasOwnProperty('mac')
@@ -89,14 +95,8 @@ class Base_encryptor {
             Base_encryptor.throwError(e.message);
         }
     }
-    static prepareData(data) {
-        if (!data)
-            Base_encryptor.throwError('You are calling Encryptor without data to cipher');
-        data = Base_encryptor.ifNumberToString(data);
-        return Base_encryptor.ifObjectToString(data);
-    }
-    static ifSerialized_unserialize(decrypted) {
-        return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unSerialize(decrypted) : decrypted;
+    ifserialized_unserialize(decrypted) {
+        return this.serialize_driver.unSerialize(decrypted);
     }
     hashIt(iv, encrypted) {
         try {
@@ -109,14 +109,11 @@ class Base_encryptor {
             Base_encryptor.throwError(e.message);
         }
     }
-    static serialize(data) {
-        return Serialize.serialize(data);
+    serialize(data) {
+        return this.serialize_driver.serialize(data);
     }
-    static isSerialized(data) {
-        return Serialize.isSerialized(data);
-    }
-    static unSerialize(data) {
-        return Serialize.unserialize(data);
+    unserialize(data) {
+        return this.serialize_driver.unSerialize(data);
     }
     static toBase64(data) {
         return Buffer.from(data).toString('base64');
@@ -139,8 +136,8 @@ class Base_encryptor {
         encrypted = JSON.stringify(encrypted);
         return Buffer.from(encrypted).toString('base64');
     }
-    static ifObjectToString(data) {
-        return (typeof data === 'object') ? Base_encryptor.serialize(data) : data;
+    ifObjectToString(data) {
+        return (typeof data === 'object') ? this.serialize(data) : data;
     }
     static ifNumberToString(data) {
         return (typeof data === 'number') ? data + '' : data;

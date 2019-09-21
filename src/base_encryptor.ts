@@ -1,4 +1,5 @@
-const Serialize = require('php-serialize');
+import {Serialize} from "./Serialize";
+//const serialize = require('php-serialize');
 import {EncryptorError} from "./EncryptorError";
 let crypto;
 
@@ -9,6 +10,9 @@ try {
    throw new EncryptorError(e.message);
 }
 
+/**
+ * Base encryptor Class
+ */
 export class Base_encryptor {
 
     /** Cypher type */
@@ -24,25 +28,39 @@ export class Base_encryptor {
     private readonly valid_key_lengths = [32, 64];
 
     /** Bytes number for crypto.randomBytes default 8 */
-    protected random_bytes;
+    protected random_bytes = 8;
+
+    /** constructor options */
+    protected options: {
+        laravel_key?: string,
+        key?: string,
+        key_length?: number,
+        random_bytes?: number,
+        serialize_mode?: 'json'|'php'
+    };
+
+    /** serialize driver */
+    private serialize_driver: Serialize;
+
+    /** default serialize lib */
+    protected default_serialize_mode = 'json';
 
     /**
      * Return new Encryptor
      *
      * @param options {key: string, key_length?: number }
      */
-    constructor(protected options: { laravel_key?: string, key?: string, key_length?: number , random_bytes?: number }) {
+    constructor(options) {
 
-        if (this.options.laravel_key)
-            console.log('DeprecationWarning: Laravel Encryptor, laravel_key is depreciated, please use key instead');
+        this.options = Object.assign({}, {serialize_mode: this.default_serialize_mode}, options);
 
-        const key = this.options.laravel_key ? this.options.laravel_key: this.options.key;
+        this.secret = Buffer.from(this.options.key, 'base64');
+
+        this.serialize_driver = new Serialize(this.options);
 
         this.setAlgorithm();
 
-        this.secret = Buffer.from(key, 'base64');
-
-        this.random_bytes = this.options.random_bytes ? this.options.random_bytes : 8;
+        this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
 
     /**
@@ -58,6 +76,23 @@ export class Base_encryptor {
 
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
+    }
+
+    /**
+     * Prepare Data
+     *  will receive data from this.encrypt(data)
+     *  and check if is a number to convert to string,
+     *  return data serialized if need it
+     *
+     * @param data
+     */
+    protected prepareData(data){
+
+        if(! data) Base_encryptor.throwError('You are calling Encryptor without data to cipher');
+
+        data = Base_encryptor.ifNumberToString(data);
+
+        return this.ifObjectToString(data);
     }
 
     /**
@@ -84,7 +119,8 @@ export class Base_encryptor {
 
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
-        return Base_encryptor.ifSerialized_unserialize(decrypted)
+
+        return this.ifserialized_unserialize(decrypted)
     }
 
     /**
@@ -168,29 +204,13 @@ export class Base_encryptor {
     }
 
     /**
-     * Prepare Data
-     *  will receive data from this.encrypt(data)
-     *  and check if is a number to convert to string,
-     *  return data serialized if need it
-     *
-     * @param data
-     */
-    static prepareData(data){
-
-        if(! data) Base_encryptor.throwError('You are calling Encryptor without data to cipher');
-
-        data = Base_encryptor.ifNumberToString(data);
-
-        return Base_encryptor.ifObjectToString(data);
-    }
-
-    /**
-     * ifSerialized_unserialize
+     * ifserialized_unserialize
      *
      * @param decrypted
      */
-    static ifSerialized_unserialize(decrypted) {
-        return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unSerialize(decrypted) : decrypted;
+    protected ifserialized_unserialize(decrypted) {
+        //return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unserialize(decrypted) : decrypted;
+        return this.serialize_driver.unSerialize(decrypted)
     }
 
     /**
@@ -217,18 +237,9 @@ export class Base_encryptor {
      * @param data
      * @return serialized data
      */
-    static serialize(data): any {
-        return Serialize.serialize(data)
-    }
-
-    /**
-     * is serialize data
-     *
-     * @param data
-     * @return serialized data
-     */
-    static isSerialized(data): any {
-        return Serialize.isSerialized(data)
+    protected serialize(data): any {
+        //return serialize.serialize(data)
+        return this.serialize_driver.serialize(data)
     }
 
     /**
@@ -237,8 +248,9 @@ export class Base_encryptor {
      * @param data
      * @return unserialized data
      */
-    static unSerialize(data): any {
-        return Serialize.unserialize(data)
+    protected unserialize(data): any {
+        //return serialize.unserialize(data)
+        return this.serialize_driver.unSerialize(data)
     }
 
     /**
@@ -303,8 +315,8 @@ export class Base_encryptor {
      *
      * @param data
      */
-    static ifObjectToString(data){
-        return (typeof data === 'object') ?  Base_encryptor.serialize(data) : data;
+    protected ifObjectToString(data){
+        return (typeof data === 'object') ?  this.serialize(data) : data;
     }
 
     /**

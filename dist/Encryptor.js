@@ -7,13 +7,13 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
         super(options);
     }
     encrypt(data) {
-        const payload = Encryptor.prepareData(data);
+        const payload = this.prepareData(data);
         return this
             .encryptIt(payload)
             .then(Encryptor.stringifyAndBase64, Encryptor.throwError);
     }
     encryptSync(data) {
-        const payload = Encryptor.prepareData(data);
+        const payload = this.prepareData(data);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload));
     }
     encryptIt(data) {
