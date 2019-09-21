@@ -148,7 +148,7 @@ class Base_encryptor {
         throw new EncryptorError_1.EncryptorError(error);
     }
     static generateRandomKey(length) {
-        length = length ? length : 32;
+        length = length ? length : Base_encryptor.app_key_length;
         try {
             const buf = crypto.randomBytes(length);
             return buf.toString('base64');
@@ -158,4 +158,5 @@ class Base_encryptor {
         }
     }
 }
+Base_encryptor.app_key_length = 32;
 exports.Base_encryptor = Base_encryptor;

@@ -1,5 +1,4 @@
 import {Serialize} from "./Serialize";
-//const serialize = require('php-serialize');
 import {EncryptorError} from "./EncryptorError";
 let crypto;
 
@@ -27,8 +26,16 @@ export class Base_encryptor {
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
     private readonly valid_key_lengths = [32, 64];
 
-    /** Bytes number for crypto.randomBytes default 8 */
+    /** Bytes number crypto.randomBytes default 8 */
     protected random_bytes = 8;
+
+    /** Bytes number generateRandomKey default 32 */
+    private static readonly app_key_length = 32;
+    /** serialize driver */
+    private serialize_driver: Serialize;
+
+    /** default serialize lib */
+    protected default_serialize_mode = 'json';
 
     /** constructor options */
     protected options: {
@@ -39,11 +46,6 @@ export class Base_encryptor {
         serialize_mode?: 'json'|'php'
     };
 
-    /** serialize driver */
-    private serialize_driver: Serialize;
-
-    /** default serialize lib */
-    protected default_serialize_mode = 'json';
 
     /**
      * Return new Encryptor
@@ -209,7 +211,6 @@ export class Base_encryptor {
      * @param decrypted
      */
     protected ifserialized_unserialize(decrypted) {
-        //return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unserialize(decrypted) : decrypted;
         return this.serialize_driver.unSerialize(decrypted)
     }
 
@@ -238,7 +239,6 @@ export class Base_encryptor {
      * @return serialized data
      */
     protected serialize(data): any {
-        //return serialize.serialize(data)
         return this.serialize_driver.serialize(data)
     }
 
@@ -249,7 +249,6 @@ export class Base_encryptor {
      * @return unserialized data
      */
     protected unserialize(data): any {
-        //return serialize.unserialize(data)
         return this.serialize_driver.unSerialize(data)
     }
 
@@ -347,7 +346,7 @@ export class Base_encryptor {
      * @return string
      */
     static generateRandomKey(length?: number): string {
-        length = length ? length : 32;
+        length = length ? length : Base_encryptor.app_key_length;
         try{
             const buf = crypto.randomBytes(length);
             return buf.toString('base64');

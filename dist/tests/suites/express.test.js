@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const { Cookie } = require("cookiejar");
 const path = require('path');
-const { ExpressServer } = require(path.resolve(__dirname + "/express-server"));
+const { ExpressServer } = require(path.resolve(__dirname + "/../express/express-server"));
 const uuid = require('uuid/v1');
 const { describe, it } = require("mocha");
 const { expect } = require("chai");

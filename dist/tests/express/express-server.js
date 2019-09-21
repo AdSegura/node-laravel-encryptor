@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const http = require('http');
-const { Encryptor } = require('../../');
+const { Encryptor } = require('../../../');
 const cookie = require('cookie');
 class ExpressServer {
     constructor(options) {

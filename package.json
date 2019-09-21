@@ -19,10 +19,10 @@
     "copy": "node_modules/.bin/copyfiles -u 1 src/tests/php/* dist/",
     "dev": "tsc -w",
     "test": "node_modules/.bin/_mocha --exit dist/tests/index.js",
-    "artillery_expect": "artillery run src/tests/artillery_expect.yml",
-    "artillery": "artillery run src/tests/artillery.yml",
-    "artillery_server_async": "node dist/tests/start-server.js 1",
-    "artillery_server_sync": "node dist/tests/start-server.js"
+    "artillery_expect": "artillery run src/tests/artillery/artillery_expect.yml",
+    "artillery": "artillery run src/tests/artillery/artillery.yml",
+    "artillery_server_async": "node dist/tests/express/start-server.js 1",
+    "artillery_server_sync": "node dist/tests/express/start-server.js"
   },
   "author": "Adolfo Segura Hall",
   "license": "MIT",
