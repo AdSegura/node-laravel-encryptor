@@ -29,7 +29,7 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
                 return { iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv) };
             }
             catch (e) {
-                throw e;
+                Encryptor.throwError(e.message);
             }
         };
     }
@@ -52,9 +52,6 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
                 resolve(buffer.toString('hex'));
             });
         });
-    }
-    static throwError(error) {
-        throw error;
     }
     static static_decipher(key, data) {
         const encrypt = new Encryptor({ key });

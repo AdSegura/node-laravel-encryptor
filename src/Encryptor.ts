@@ -1,5 +1,4 @@
 import {Base_encryptor} from "./base_encryptor";
-import {type} from "os";
 const crypto = require('crypto');
 
 // Cipher steps:
@@ -88,7 +87,7 @@ export class Encryptor extends Base_encryptor {
             try {
                  return {iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv)};
             } catch (e) {
-                throw e
+                Encryptor.throwError(e.message);
             }
         }
     }
@@ -128,15 +127,6 @@ export class Encryptor extends Base_encryptor {
                 resolve(buffer.toString('hex'))
             });
         });
-    }
-
-    /**
-     * Throw Error.
-     *
-     * @param error
-     */
-    static throwError(error) {
-        throw error;
     }
 
     /**

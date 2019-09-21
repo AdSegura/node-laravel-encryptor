@@ -82,6 +82,7 @@ describe('node Laravel Encryptor', function () {
             encryptor
                 .encrypt(null)
         }catch (e) {
+            expect(e.name).equal('EncryptorError');
             expect(e.message).equal('You are calling Encryptor without data to cipher');
             done();
         }
@@ -97,8 +98,8 @@ describe('node Laravel Encryptor', function () {
             .encrypt(text)
             .then()
             .catch(e => {
-                expect(e.message)
-                    .equal('Invalid key length');
+                expect(e.name).equal('EncryptorError');
+                expect(e.message).equal('Invalid key length');
                 done()
             })
     });
@@ -111,6 +112,7 @@ describe('node Laravel Encryptor', function () {
                 key_length: 31
             });
         }catch (e) {
+            expect(e.name).equal('EncryptorError');
             expect(e.message)
                 .equal('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
             done()
@@ -125,6 +127,7 @@ describe('node Laravel Encryptor', function () {
         try {
             encryptor.decrypt('foo');
         }catch (e) {
+            expect(e.name).equal('EncryptorError');
             expect(e.message)
                 .equal('Encryptor decryptIt cannot parse json');
             done()
@@ -147,8 +150,8 @@ describe('node Laravel Encryptor', function () {
         try{
             encryptor.decrypt(fake)
         }catch (e) {
-            expect(e.message)
-                .equal('The MAC is invalid.');
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('The MAC is invalid.');
             done()
         }
     });
@@ -167,8 +170,8 @@ describe('node Laravel Encryptor', function () {
         try{
             encryptor.decrypt(fake);
         }catch (e) {
-            expect(e.message)
-                .equal('The payload is invalid.');
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('The payload is invalid.');
             done()
         }
     });
@@ -189,8 +192,8 @@ describe('node Laravel Encryptor', function () {
         try{
             encryptor.decrypt(fake);
         }catch (e) {
-            expect(e.message)
-                .equal('The payload is invalid.');
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('The payload is invalid.');
             done()
         }
     });

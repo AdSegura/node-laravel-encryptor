@@ -3,10 +3,10 @@ config:
   phases:
     - duration: 120
       arrivalRate: 10
-      rampTo: 50
+      rampTo: 20
       name: "Warm up the application"
     - duration: 120
-      arrivalRate: 50
+      arrivalRate: 20
       name: "Sustained max load"
 scenarios:
   - name: "stress test"

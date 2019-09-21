@@ -44,10 +44,12 @@ const enc = encryptor.encryptSync({foo: 'bar'});
 
 console.log(encryptor.decrypt(enc));
 ```
+
+Decrypt is always in sync mode.
+
 ## Options 
 ###### Object  {key, key_length} 
 * key: APP_KEY without `base64:` 
-* laravel_key: `DEPRECIATED`
 * key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
 
 if no `key_length` is given default is 64.
@@ -57,10 +59,15 @@ if no `key_length` is given default is 64.
 ### encrypt
 arguments:
 * data: string|object|number
+* return base64 string
+* throw EncryptorError
 
 ### decrypt
 arguments:
 * data: string|object|number
+* return string|object
+* throw EncryptorError
+
 
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
@@ -82,32 +89,35 @@ To be able to run PHP test you must have installed:
 ```sh
 $> npm run test
 
-    node Laravel Encrypter
-      ✓ should cipher and decipher
-      ✓ should fail cipher and decipher object without serialize
-      ✓ should cipher and decipher with no key_length defined
-      ✓ should cipher and decipher with no serialize nor unserialize
-      ✓ should fail cipher not valid Laravel Key
-      ✓ should fail cipher not valid algorithm
-      ✓ should fail decipher not valid data
-      ✓ should cipher and decipher multiple times
-      ✓ should decipher data at Laravel correctly (52ms)
-      ✓ should decipher from Laravel correctly (50ms)
-      ✓ should cipher and decipher Sync Mode
-      ✓ should decipher data, Sync Mode, at Laravel correctly (45ms)
-  
-  
-    12 passing (173ms)
-    
-    Express Crypto Cookie Compatible with Laravel
-      ✓ should create one request to Express aSync Mode, receive cookie and decipher (38ms)
-      ✓ should create one request to Express Sync Mode, receive cookie and decipher
-  
-    2 passing (61ms)
-
+     node Laravel Encryptor
+       ✓ should cipher and decipher
+       ✓ should cipher and decipher object without serialize or stringify object
+       ✓ should cipher and decipher with no key_length defined
+       ✓ should cipher and decipher a number
+       ✓ should throw Error when data to encrypt is null
+       ✓ should throw Error when cipher with not valid Key
+       ✓ should throw Error when cipher with not valid algorithm
+       ✓ should throw Error when decipher not valid Json
+       ✓ should throw Error when decipher invalid MAC signature
+       ✓ should throw Error when decipher with invalid Payload
+       ✓ should throw Error when decipher with invalid iv length
+       ✓ should decipher data at Laravel correctly (54ms)
+       ✓ should decipher from Laravel correctly (49ms)
+       ✓ should cipher and decipher Sync Mode
+       ✓ should decipher data, Sync Mode, at Laravel correctly (46ms)
+   
+   
+     15 passing (178ms)
+   
+     Express Crypto Cookie Compatible with Laravel
+       ✓ should create one request to Express aSync Mode, receive cookie and decipher (56ms)
+       ✓ should create one request to Express Sync Mode, receive cookie and decipher
+   
+   
+     2 passing (78ms)
 ```
 
-## Artillery test
+# Artillery test
 
 In order to run Artillery integration test and stress test with aSync|Sync mode we have 
 
@@ -116,8 +126,65 @@ to [install artillery](https://artillery.io/docs/getting-started/) and artillery
 ```bash
 $> npm install -g artillery artillery-plugin-expect
 ```
+## Run Artillery expect test
 
-### Run Artillery test
+#### start server running in async mode
+```bash
+$> npm run artillery_server_async
+```
+
+```bash
+$> npm run artillery_expect
+```
+
+```bash
+All virtual users finished
+Summary report @ 11:28:45(+0200) 2019-09-21
+  Scenarios launched:  110
+  Scenarios completed: 110
+  Requests completed:  1100
+  RPS sent: 105.77
+  Request latency:
+    min: 0.8
+    max: 14.4
+    median: 1.2
+    p95: 2
+    p99: 3.5
+  Scenario counts:
+    Integration Test, parallel request: 110 (100%)
+  Codes:
+    200: 1100
+```
+
+#### start server running in sync mode
+```bash
+$> npm run artillery_server_sync
+```
+
+```bash
+$> npm run artillery_expect
+```
+
+```bash
+All virtual users finished
+Summary report @ 11:31:09(+0200) 2019-09-21
+  Scenarios launched:  110
+  Scenarios completed: 110
+  Requests completed:  1100
+  RPS sent: 105.87
+  Request latency:
+    min: 1
+    max: 27.3
+    median: 1.4
+    p95: 2.2
+    p99: 3.9
+  Scenario counts:
+    Integration Test, parallel request: 110 (100%)
+  Codes:
+    200: 1100
+```
+
+## Run Artillery stress test
 
 #### start server running in async mode
 ```bash
@@ -136,43 +203,44 @@ $> npm run artillery
 
 #### Async Mode
 ```sh
-Summary report @ 23:42:25(+0200) 2019-09-18
-  Scenarios launched:  2000
-  Scenarios completed: 2000
-  Requests completed:  11009
-  RPS sent: 109.59
+All virtual users finished
+Summary report @ 11:20:34(+0200) 2019-09-21
+  Scenarios launched:  4220
+  Scenarios completed: 4220
+  Requests completed:  4220
+  RPS sent: 17.52
   Request latency:
-    min: 0.6
-    max: 33.4
-    median: 1
-    p95: 1.8
-    p99: 3.1
+    min: 1.1
+    max: 30.3
+    median: 1.9
+    p95: 3
+    p99: 4.8
   Scenario counts:
-    Integration Test, parallel request no loop: 999 (49.95%)
-    Integration Test, parallel request: 1001 (50.05%)
+    stress test: 4220 (100%)
   Codes:
-    200: 11009
+    200: 4220
 ```
 
 #### Sync Mode
 ```sh
-Summary report @ 23:55:08(+0200) 2019-09-18
-  Scenarios launched:  2000
-  Scenarios completed: 2000
-  Requests completed:  11144
-  RPS sent: 110.94
+All virtual users finished
+Summary report @ 11:15:31(+0200) 2019-09-21
+  Scenarios launched:  4220
+  Scenarios completed: 4220
+  Requests completed:  4220
+  RPS sent: 17.52
   Request latency:
-    min: 0.6
-    max: 28.3
-    median: 1
-    p95: 1.8
-    p99: 3.1
+    min: 1.1
+    max: 30.6
+    median: 1.9
+    p95: 2.9
+    p99: 4.7
   Scenario counts:
-    Integration Test, parallel request no loop: 984 (49.2%)
-    Integration Test, parallel request: 1016 (50.8%)
+    stress test: 4220 (100%)
   Codes:
-    200: 11144
+    200: 4220
 ```
+
 ### [Dont block the event loop](https://nodejs.org/en/docs/guides/dont-block-the-event-loop/)
 >Blocking the Event Loop: Node core modules
 > 
@@ -189,74 +257,4 @@ Summary report @ 23:55:08(+0200) 2019-09-18
 >  
 >      Encryption:
 >          crypto.randomBytes (synchronous version)
-
-
-## But with Sync mode Artillery wins 
-
-When we cipher some data we use `crypto.randomBytes` function to generate cryptographically secure random bytes.
-
-There are two modes with `crypto.randomBytes` synchronous or asynchronous, official docs says you should 
-not use `crypto.randomBytes` synchronous mode on a production server.
-
-This module gives you the two options and other modules (with thousands downloads) I saw are using `crypto.randomBytes` in synchronous mode.
-
-### why chose Sync mode ?
-If you want to write an encrypted cookie from a middleware you will prefer aSync mode,
- but inside a route function you will want to write a cookie as simple as this `res.ciperCookie(data)` 
- and not execute a Promise and wait.
  
- #### usual code to cipher a cookie, Sync mode
- ```js
- get('/very-complicated', (req, res) => {
-     res.ciperCookieSync(data);
-     
-     doSomething()
-        .then(doOtherThing)
-        .then(doMuchMoreThings)
-        .then(data => res.json(data))
-        .catch(e => next(e))
- })
-```
-
-#### aSync mode code to cipher a cookie,
-```js
- get('/very-complicated', (req, res) => {
-     res.ciperCookiesaAsync(data)
-        .then(doSomething)
-        .then(doMuchMoreThings)
-        .then(data => res.json(data))
-        .catch(e => next(e))
- })
-```
-
-We can get rid of this Promises in route functions (expressJs) making a last middleware that should do the job
-of writing custom data into a cookie or anywhere in aSync Mode, here a quick and dirt idea:
-
- ```js
- get('/very-complicated', (req, res, next) => {
-     res.cipherCookie = data; //we store cookie data inside res object
-     
-     doSomething()
-        .then(doOtherThing)
-        .then(doMuchMoreThings)
-        .then(data => {
-            res.container = { data } //we pass data to next function
-            next(); //call next function, our middleware 
-        })
-        .catch(e => next(e))
- })
-```
- 
- #### Last middleware:
-  ```js
-  (req, res, next) => {
-      
-    if(res.cipherCookie){
-        return  res.ciperCookiesaAsync(res.cipherCookie)
-                  .then(() => res.json(res.container))
-                  .catch(e => next(e))
-     }
-      
-     next();
-  };
- ```

@@ -1,5 +1,6 @@
 const Serialize = require('php-serialize');
 const crypto = require('crypto');
+import {EncryptorError} from "./EncryptorError";
 
 export class Base_encryptor {
 
@@ -46,7 +47,7 @@ export class Base_encryptor {
      */
     protected setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
-            throw new Error('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
 
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
@@ -64,15 +65,15 @@ export class Base_encryptor {
         try {
             payload = JSON.parse(payload);
         } catch (e) {
-            throw new Error('Encryptor decryptIt cannot parse json')
+            Base_encryptor.throwError('Encryptor decryptIt cannot parse json')
         }
 
-        //TODO check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
+        //check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
         if(! Base_encryptor.validPayload(payload))
-            throw new Error('The payload is invalid.');
+            Base_encryptor.throwError('The payload is invalid.');
 
         if(! this.validMac(payload))
-            throw new Error('The MAC is invalid.');
+            Base_encryptor.throwError('The MAC is invalid.');
 
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
@@ -165,7 +166,7 @@ export class Base_encryptor {
      */
     static prepareData(data){
 
-        if(! data) throw new Error('You are calling Encryptor without data to cipher');
+        if(! data) Base_encryptor.throwError('You are calling Encryptor without data to cipher');
 
         data = Base_encryptor.ifNumberToString(data);
 
@@ -294,6 +295,18 @@ export class Base_encryptor {
      */
     static ifNumberToString(data){
         return (typeof data === 'number') ?  data + '' : data;
+    }
+
+    /**
+     * Throw Error.
+     *
+     * @param error
+     */
+    static throwError(error) {
+        if(error.name === 'EncryptorError')
+            throw error;
+
+        throw new EncryptorError(error);
     }
 
     /**

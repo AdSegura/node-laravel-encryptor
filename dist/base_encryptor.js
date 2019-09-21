@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Serialize = require('php-serialize');
 const crypto = require('crypto');
+const EncryptorError_1 = require("./EncryptorError");
 class Base_encryptor {
     constructor(options) {
         this.options = options;
@@ -16,7 +17,7 @@ class Base_encryptor {
     }
     setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
-            throw new Error('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
@@ -26,12 +27,12 @@ class Base_encryptor {
             payload = JSON.parse(payload);
         }
         catch (e) {
-            throw new Error('Encryptor decryptIt cannot parse json');
+            Base_encryptor.throwError('Encryptor decryptIt cannot parse json');
         }
         if (!Base_encryptor.validPayload(payload))
-            throw new Error('The payload is invalid.');
+            Base_encryptor.throwError('The payload is invalid.');
         if (!this.validMac(payload))
-            throw new Error('The MAC is invalid.');
+            Base_encryptor.throwError('The MAC is invalid.');
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return Base_encryptor.ifSerialized_unserialize(decrypted);
@@ -74,7 +75,7 @@ class Base_encryptor {
     }
     static prepareData(data) {
         if (!data)
-            throw new Error('You are calling Encryptor without data to cipher');
+            Base_encryptor.throwError('You are calling Encryptor without data to cipher');
         data = Base_encryptor.ifNumberToString(data);
         return Base_encryptor.ifObjectToString(data);
     }
@@ -117,6 +118,11 @@ class Base_encryptor {
     }
     static ifNumberToString(data) {
         return (typeof data === 'number') ? data + '' : data;
+    }
+    static throwError(error) {
+        if (error.name === 'EncryptorError')
+            throw error;
+        throw new EncryptorError_1.EncryptorError(error);
     }
     static generateRandomKey(length) {
         length = length ? length : 32;
