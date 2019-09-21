@@ -154,13 +154,21 @@ export default function suite() {
 
 
         describe('Test Encryptor Cipher and Decipher ', function () {
+
+            it('should generate a valid key', done => {
+                const randomKey = Encryptor.generateRandomKey();
+                const encryptor = new Encryptor({key: randomKey});
+                encryptor
+                    .encrypt(text)
+                    .then(enc => {
+                        const dec = encryptor.decrypt(enc);
+                        expect(dec).equal(text);
+                        done()
+                    });
+            });
+
             it('should cipher and decipher', done => {
-
-                const encryptor = new Encryptor({
-                    key,
-                    key_length: 64
-                });
-
+                const encryptor = new Encryptor({key, key_length: 64});
                 encryptor
                     .encrypt(text)
                     .then(enc => {

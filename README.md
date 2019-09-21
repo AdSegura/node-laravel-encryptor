@@ -119,22 +119,23 @@ $> npm run test
         ✓ should throw Error when decipher with invalid Payload
         ✓ should throw Error when decipher with invalid iv length
       Test Encryptor Cipher and Decipher 
+        ✓ should generate a valid key
         ✓ should cipher and decipher
         ✓ should cipher and decipher object without serialize or stringify object
         ✓ should cipher and decipher with no key_length defined
         ✓ should cipher and decipher a number
         ✓ should cipher and decipher Sync Mode
       Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
-        ✓ should decipher data at Laravel correctly (49ms)
-        ✓ should decipher from Laravel correctly (49ms)
-        ✓ should decipher data, Sync Mode, at Laravel correctly (51ms)
+        ✓ should decipher data at Laravel correctly (54ms)
+        ✓ should decipher from Laravel correctly (54ms)
+        ✓ should decipher data, Sync Mode, at Laravel correctly (50ms)
     Test integration with express cookie
       Express Crypto Cookie Compatible with Laravel
-        ✓ should create one request to Express aSync Mode, receive cookie and decipher (38ms)
+        ✓ should create one request to Express aSync Mode, receive cookie and decipher (39ms)
         ✓ should create one request to Express Sync Mode, receive cookie and decipher
 
 
-  18 passing (247ms)
+  19 passing (254ms)
 
 ```
 

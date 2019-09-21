@@ -152,8 +152,13 @@ class Base_encryptor {
     }
     static generateRandomKey(length) {
         length = length ? length : 32;
-        const buf = crypto.randomBytes(length);
-        return buf.toString('base64');
+        try {
+            const buf = crypto.randomBytes(length);
+            return buf.toString('base64');
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
 }
 exports.Base_encryptor = Base_encryptor;
