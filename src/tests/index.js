@@ -88,7 +88,7 @@ describe('node Laravel Encryptor', function () {
     });
 
 
-    it('should fail cipher not valid Laravel Key', done => {
+    it('should throw Error when cipher with not valid Key', done => {
         const encryptor = new Encryptor({
             key: 'foobarbaz'
         });
@@ -103,7 +103,7 @@ describe('node Laravel Encryptor', function () {
             })
     });
 
-    it('should fail cipher not valid algorithm', done => {
+    it('should throw Error when cipher with not valid algorithm', done => {
 
         try {
             new Encryptor({
@@ -117,7 +117,7 @@ describe('node Laravel Encryptor', function () {
         }
     });
 
-    it('should fail decipher not valid data', done => {
+    it('should throw Error when decipher not valid Json', done => {
         const encryptor = new Encryptor({
             key,
         });
@@ -126,7 +126,71 @@ describe('node Laravel Encryptor', function () {
             encryptor.decrypt('foo');
         }catch (e) {
             expect(e.message)
-                .equal('Encryptor decripIt cannot parse json');
+                .equal('Encryptor decryptIt cannot parse json');
+            done()
+        }
+    });
+
+    it('should throw Error when decipher invalid MAC signature', done => {
+        const encryptor = new Encryptor({key});
+
+        const encrypted = encryptor.encryptSync(one_object);
+
+        let fake = Buffer.from(encrypted, 'base64').toString('utf8');
+
+        fake = JSON.parse(fake);
+
+        fake.mac = 99;
+
+        fake = Buffer.from(JSON.stringify(fake), 'utf8').toString('base64');
+
+        try{
+            encryptor.decrypt(fake)
+        }catch (e) {
+            expect(e.message)
+                .equal('The MAC is invalid.');
+            done()
+        }
+    });
+
+    it('should throw Error when decipher with invalid Payload', done => {
+        const encryptor = new Encryptor({key});
+
+        const encrypted = encryptor.encryptSync(one_object);
+
+        let fake = Buffer.from(encrypted, 'base64').toString('utf8');
+
+        fake = JSON.parse(fake);
+
+        fake = Buffer.from(JSON.stringify({iv:fake.iv, value:fake.value}), 'utf8').toString('base64');
+
+        try{
+            encryptor.decrypt(fake);
+        }catch (e) {
+            expect(e.message)
+                .equal('The payload is invalid.');
+            done()
+        }
+    });
+
+    it('should throw Error when decipher with invalid iv length', done => {
+        const encryptor = new Encryptor({key});
+
+        const encrypted = encryptor.encryptSync(one_object);
+
+        let fake = Buffer.from(encrypted, 'base64').toString('utf8');
+
+        fake = JSON.parse(fake);
+
+        fake.iv = '22';
+
+        fake = Buffer.from(JSON.stringify(fake), 'utf8').toString('base64');
+
+        try{
+            encryptor.decrypt(fake);
+        }catch (e) {
+            expect(e.message)
+                .equal('The payload is invalid.');
             done()
         }
     });

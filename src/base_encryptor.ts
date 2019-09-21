@@ -68,10 +68,40 @@ export class Base_encryptor {
         }
 
         //TODO check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
+        if(! Base_encryptor.validPayload(payload))
+            throw new Error('The payload is invalid.');
+
+        if(! this.validMac(payload))
+            throw new Error('The MAC is invalid.');
+
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return Base_encryptor.ifSerialized_unserialize(decrypted)
     }
+
+    /**
+     * validPayload
+     *
+     * @param payload
+     */
+    static validPayload(payload){
+        return payload.hasOwnProperty('iv') && payload.hasOwnProperty('value') && payload.hasOwnProperty('mac')
+                && Buffer.from(payload.iv,'base64').toString('hex').length === 32;
+    }
+
+    /**
+     * validMac
+     *
+     * @param payload
+     */
+     validMac(payload){
+         try {
+             const calculated = this.hashIt(payload.iv, payload.value);
+             return crypto.timingSafeEqual(Buffer.from(calculated), Buffer.from(payload.mac))
+         }catch (e) {
+             return false;
+         }
+     }
 
     /**
      * encryptIt

@@ -26,11 +26,28 @@ class Base_encryptor {
             payload = JSON.parse(payload);
         }
         catch (e) {
-            throw new Error('Encryptor decripIt cannot parse json');
+            throw new Error('Encryptor decryptIt cannot parse json');
         }
+        if (!Base_encryptor.validPayload(payload))
+            throw new Error('The payload is invalid.');
+        if (!this.validMac(payload))
+            throw new Error('The MAC is invalid.');
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return Base_encryptor.ifSerialized_unserialize(decrypted);
+    }
+    static validPayload(payload) {
+        return payload.hasOwnProperty('iv') && payload.hasOwnProperty('value') && payload.hasOwnProperty('mac')
+            && Buffer.from(payload.iv, 'base64').toString('hex').length === 32;
+    }
+    validMac(payload) {
+        try {
+            const calculated = this.hashIt(payload.iv, payload.value);
+            return crypto.timingSafeEqual(Buffer.from(calculated), Buffer.from(payload.mac));
+        }
+        catch (e) {
+            return false;
+        }
     }
     encryptItSync(data) {
         const buf = crypto.randomBytes(this.random_bytes);
