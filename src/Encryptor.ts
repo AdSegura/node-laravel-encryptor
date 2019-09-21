@@ -99,10 +99,14 @@ export class Encryptor extends Base_encryptor {
      */
     private cipherIt(data) {
         return ({iv, cipher}: any) => {
-            return {
-                iv,
-                value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
-            };
+            try {
+                return {
+                    iv,
+                    value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
+                };
+            }catch (e) {
+                Encryptor.throwError(e.message);
+            }
         }
     }
 

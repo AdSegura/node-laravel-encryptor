@@ -1,8 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Serialize = require('php-serialize');
-const crypto = require('crypto');
 const EncryptorError_1 = require("./EncryptorError");
+let crypto;
+try {
+    crypto = require('crypto');
+}
+catch (e) {
+    throw new EncryptorError_1.EncryptorError(e.message);
+}
 class Base_encryptor {
     constructor(options) {
         this.options = options;
@@ -68,10 +74,20 @@ class Base_encryptor {
         };
     }
     createDecipheriv(iv) {
-        return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+        try {
+            return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
     static cryptoDecipher(payload, decipher) {
-        return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
+        try {
+            return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
     static prepareData(data) {
         if (!data)
@@ -83,10 +99,15 @@ class Base_encryptor {
         return Base_encryptor.isSerialized(decrypted) ? Base_encryptor.unSerialize(decrypted) : decrypted;
     }
     hashIt(iv, encrypted) {
-        const hmac = Base_encryptor.createHmac("sha256", this.secret);
-        return hmac
-            .update(Base_encryptor.setHmacPayload(iv, encrypted))
-            .digest("hex");
+        try {
+            const hmac = Base_encryptor.createHmac("sha256", this.secret);
+            return hmac
+                .update(Base_encryptor.setHmacPayload(iv, encrypted))
+                .digest("hex");
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
     static serialize(data) {
         return Serialize.serialize(data);
@@ -104,7 +125,12 @@ class Base_encryptor {
         return Buffer.from(data, 'base64').toString('utf8');
     }
     static createHmac(alg, secret) {
-        return crypto.createHmac(alg, secret);
+        try {
+            return crypto.createHmac(alg, secret);
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
     static setHmacPayload(iv, encrypted) {
         return Buffer.from(iv + encrypted, 'utf-8');

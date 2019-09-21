@@ -1,6 +1,13 @@
 const Serialize = require('php-serialize');
-const crypto = require('crypto');
 import {EncryptorError} from "./EncryptorError";
+let crypto;
+
+//Determining if crypto support is unavailable
+try {
+    crypto = require('crypto');
+} catch (e) {
+   throw new EncryptorError(e.message);
+}
 
 export class Base_encryptor {
 
@@ -112,13 +119,9 @@ export class Base_encryptor {
      */
     protected encryptItSync(data): any {
         const buf = crypto.randomBytes(this.random_bytes);
-
         const iv = buf.toString('hex');
-
         const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-
         const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
-
         return this.generateEncryptedObject()({iv, value})
     }
 
@@ -143,7 +146,11 @@ export class Base_encryptor {
      * @return crypto decipher
      */
     protected createDecipheriv(iv) {
-        return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+        try {
+            return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
+        }catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
 
     /**
@@ -153,7 +160,11 @@ export class Base_encryptor {
      * @param decipher
      */
     static cryptoDecipher(payload, decipher) {
-        return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
+        try {
+            return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
+        }catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
 
     /**
@@ -190,10 +201,14 @@ export class Base_encryptor {
      * @return hex string
      */
     protected hashIt(iv, encrypted): any {
-        const hmac = Base_encryptor.createHmac("sha256", this.secret);
-        return hmac
-            .update(Base_encryptor.setHmacPayload(iv, encrypted))
-            .digest("hex");
+        try{
+            const hmac = Base_encryptor.createHmac("sha256", this.secret);
+            return hmac
+                .update(Base_encryptor.setHmacPayload(iv, encrypted))
+                .digest("hex");
+        }catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
     }
 
     /**
@@ -253,7 +268,12 @@ export class Base_encryptor {
      * @param secret
      */
     static createHmac(alg, secret) {
-        return crypto.createHmac(alg, secret);
+        try{
+            return crypto.createHmac(alg, secret);
+        } catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
+
     }
 
     /**

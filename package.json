@@ -16,9 +16,10 @@
   "homepage": "https://github.com/AdSegura/node-laravel-encryptor/blob/master/README.md",
   "scripts": {
     "build": "npm run copy && tsc",
-    "copy": "npm run copy_test && npm run copy_itest && npm run copy_test_php ",
+    "copy": "npm run copy_test && npm run copy_itest && npm run copy_test_php && npm run copy_index_test",
     "copy_itest": "node_modules/.bin/copyfiles  -u 1 src/tests/integrator.js dist/",
-    "copy_test": "node_modules/.bin/copyfiles -u 1 src/tests/index.js dist/",
+    "copy_test": "node_modules/.bin/copyfiles -u 1 src/tests/tests.js dist/",
+    "copy_index_test": "node_modules/.bin/copyfiles -u 1 src/tests/index.js dist/",
     "copy_test_php": "node_modules/.bin/copyfiles -u 1 src/tests/php/* dist/",
     "dev": "tsc -w",
     "integration_test": "node_modules/.bin/_mocha --exit dist/tests/integrator.js",

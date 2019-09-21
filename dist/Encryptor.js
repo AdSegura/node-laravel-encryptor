@@ -35,10 +35,15 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
     }
     cipherIt(data) {
         return ({ iv, cipher }) => {
-            return {
-                iv,
-                value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
-            };
+            try {
+                return {
+                    iv,
+                    value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
+                };
+            }
+            catch (e) {
+                Encryptor.throwError(e.message);
+            }
         };
     }
     decrypt(data) {
