@@ -1,4 +1,4 @@
-# node-laravel-encryptor
+# node-laravel-encryptor Version 1 
 
 NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.0 
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
