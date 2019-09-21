@@ -57,19 +57,46 @@ if no `key_length` is given default is 64.
 ## Methods
 
 ### encrypt
-arguments:
-* data: string|object|number
+* arguments:
+    * data: string|object|number
+    
 * return base64 string
 * throw EncryptorError
 
 ### decrypt
-arguments:
-* data: string|object|number
+* arguments:
+    * data: string|object|number
+    
 * return string|object
 * throw EncryptorError
 
 
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
+
+
+### Static generateRandomKey
+* arguments:
+    * length: optional number, default 32
+    
+* return  base64 string 
+* throw EncryptorError
+
+## Static static_decipher
+* arguments:
+    * key: base64 encoded key
+    * data: string|object|number
+     
+* return  base64 string 
+* throw EncryptorError
+
+## Static static_cipher
+* arguments:
+    * key: base64 encoded key
+    * data: string|object|number
+    * cb: optional callback function
+     
+* return  base64 string 
+* throw EncryptorError
 
 # Tests
 
