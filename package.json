@@ -25,7 +25,7 @@
     "artillery_server_sync": "node dist/tests/start-server.js"
   },
   "author": "Adolfo Segura Hall",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "php-serialize": "^3.0.0"
   },

@@ -8,24 +8,13 @@ and be read by Laravel.
 
 You can use it too as standalone module to encrypt and decrypt data with verified signature.
  
-## Laravel Encrypter format:
-
-Laravel only allows `AES-128-CBC` `AES-256-CBC`.
-If no algorithm is defined default is `AES-256-CBC`
-
-```json
-{
-  "iv":  "iv in base64",
-  "value":  "encrypted data",
-  "mac":  "Hash HMAC"
-}
-```
-## Install
+# Install
 ```sh
 $> npm i node-laravel-encryptor
 ```
 
-## Use Async mode
+# Use 
+## Async mode
 ```js
 const {Encryptor} = require('node-laravel-encryptor');
 
@@ -38,7 +27,7 @@ encryptor
     .then(enc => console.log(encryptor.decrypt(enc)));
 ```
 
-## Use Sync mode
+## Sync mode
 ```js
 const enc = encryptor.encryptSync({foo: 'bar'});
 
@@ -47,23 +36,24 @@ console.log(encryptor.decrypt(enc));
 
 Decrypt is always in sync mode.
 
-## Options 
-###### Object  {key, key_length} 
-* key: APP_KEY without `base64:` 
-* key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
+# Encryptor Class 
+#### Constructor
+* arguments:
+    * object {key, key_length} 
+        * key: APP_KEY without `base64:` 
+        * key_length: optional 32|64 for aes-[128]-cbc aes-[256]-cbc
 
 if no `key_length` is given default is 64.
 
 ## Methods
-
-### encrypt
+### encrypt(data)
 * arguments:
     * data: string|object|number
     
 * return base64 string
 * throw EncryptorError
 
-### decrypt
+### decrypt(data)
 * arguments:
     * data: string|object|number
     
@@ -74,14 +64,14 @@ if no `key_length` is given default is 64.
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
 
-### Static generateRandomKey
+### Static generateRandomKey()
 * arguments:
     * length: optional number, default 32
     
 * return  base64 string 
 * throw EncryptorError
 
-## Static static_decipher
+### Static static_decipher(key, data)
 * arguments:
     * key: base64 encoded key
     * data: string|object|number
@@ -89,7 +79,7 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 * return  base64 string 
 * throw EncryptorError
 
-## Static static_cipher
+### Static static_cipher(key, data, [cb])
 * arguments:
     * key: base64 encoded key
     * data: string|object|number
@@ -289,3 +279,25 @@ Summary report @ 11:15:31(+0200) 2019-09-21
 >      Encryption:
 >          crypto.randomBytes (synchronous version)
  
+
+## Laravel Encrypter format:
+
+Laravel only allows `AES-128-CBC` `AES-256-CBC`.
+If no algorithm is defined default is `AES-256-CBC`
+
+```json
+{
+  "iv":  "iv in base64",
+  "value":  "encrypted data",
+  "mac":  "Hash HMAC"
+}
+```
+## Dependencies
+* [php-serialize](https://github.com/steelbrain/php-serialize#readme)
+
+## Contributing
+Pull requests are welcome!
+
+## License
+[MIT](https://choosealicense.com/licenses/mit/)
+
