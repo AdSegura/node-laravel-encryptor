@@ -106,8 +106,8 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
     * key:  `<string>` base64 encoded key
     * data: `<string>`|<object>|<number>
     * cb:   `<function>` optional callback
-* return `<string>` base64
-* throw EncryptorError
+ * return `<string>` base64
+ * throw EncryptorError
 
 
 # Tests
