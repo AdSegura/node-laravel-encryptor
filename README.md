@@ -109,6 +109,7 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 * return `<string>` base64
 * throw EncryptorError
 
+
 # Tests
 
 ```sh
