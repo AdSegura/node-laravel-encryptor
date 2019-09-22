@@ -6,18 +6,18 @@ class Encryptor extends base_encryptor_1.Base_encryptor {
     constructor(options) {
         super(options);
     }
-    encrypt(data) {
+    encrypt(data, force_serialize) {
         if (!data)
             throw new EncryptorError_1.EncryptorError('encrypt no data given');
-        const payload = this.prepareDataToCipher(data);
+        const payload = this.prepareDataToCipher(data, force_serialize);
         return this
             .encryptIt(payload)
             .then(Encryptor.stringifyAndBase64, Encryptor.throwError);
     }
-    encryptSync(data) {
+    encryptSync(data, force_serialize) {
         if (!data)
             throw new EncryptorError_1.EncryptorError('encryptSync no data given');
-        const payload = this.prepareDataToCipher(data);
+        const payload = this.prepareDataToCipher(data, force_serialize);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload));
     }
     decrypt(data) {

@@ -40,11 +40,13 @@ export class Encryptor extends Base_encryptor {
      * encrypt
      *
      * @param data
+     * @param force_serialize
      */
-    public encrypt(data: any): Promise<any> {
+    public encrypt(data: any, force_serialize?: boolean): Promise<any> {
         if(! data) throw new EncryptorError('encrypt no data given');
 
-        const payload  = this.prepareDataToCipher(data);
+        const payload  = this.prepareDataToCipher(data, force_serialize);
+
         return this
             .encryptIt(payload)
             .then(Encryptor.stringifyAndBase64, Encryptor.throwError)
@@ -54,12 +56,12 @@ export class Encryptor extends Base_encryptor {
      * encrypt Sync mode
      *
      * @param data
-     *
+     * @param force_serialize
      */
-    public encryptSync(data: any): string {
+    public encryptSync(data: any, force_serialize?: boolean): string {
         if(! data) throw new EncryptorError('encryptSync no data given');
 
-        const payload  = this.prepareDataToCipher(data);
+        const payload  = this.prepareDataToCipher(data, force_serialize);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload))
     }
 
@@ -100,7 +102,7 @@ export class Encryptor extends Base_encryptor {
      * @param serialize_mode
      * @param cb
      */
-    static static_cipher(key: string, data: any, serialize_mode?: 'json|php', cb?: any){
+    static static_cipher(key: string, data: any, serialize_mode?: 'json'|'php', cb?: any){
         if(! key) throw new EncryptorError('static_cipher no key given');
         if(! data) throw new EncryptorError('static_cipher no data given');
 

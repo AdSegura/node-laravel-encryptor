@@ -14,7 +14,7 @@ class Base_encryptor {
         this.key_length = 64;
         this.valid_key_lengths = [32, 64];
         this.random_bytes = 8;
-        this.default_serialize_mode = 'json';
+        this.default_serialize_mode = 'php';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
         this.secret = Buffer.from(this.options.key, 'base64');
         this.serialize_driver = new Serializer_1.Serializer(this.options);
@@ -54,9 +54,14 @@ class Base_encryptor {
             Base_encryptor.throwError('The MAC is invalid.');
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
+        if (process.env.NODE_ENV === 'test')
+            this.raw_decrypted = decrypted;
         return this.ifserialized_unserialize(decrypted);
     }
-    prepareDataToCipher(data) {
+    prepareDataToCipher(data, force_serialize) {
+        if (force_serialize === true && this.serialize_driver.getDriverName() === 'PhpSerializer') {
+            return this.serialize_driver.serialize(data);
+        }
         data = Base_encryptor.ifNumberToString(data);
         return this.ifObjectToString(data);
     }
@@ -212,6 +217,9 @@ class Base_encryptor {
         catch (e) {
             Base_encryptor.throwError(e.message);
         }
+    }
+    getRawDecrypted() {
+        return this.raw_decrypted;
     }
 }
 Base_encryptor.app_key_length = 32;

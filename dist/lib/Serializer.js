@@ -32,5 +32,8 @@ class Serializer {
             return;
         return this.driver.unSerialize(data);
     }
+    getDriverName() {
+        return this.driver.constructor.name;
+    }
 }
 exports.Serializer = Serializer;

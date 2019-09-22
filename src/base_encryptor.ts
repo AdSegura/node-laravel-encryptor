@@ -1,6 +1,7 @@
 import {Serializer} from "./lib/Serializer";
 import {EncryptorError} from "./lib/EncryptorError";
 import cryptTypes from "crypto";
+import {PhpSerializer} from "./serializers/phpSerializer";
 let crypto;
 //Determining if crypto support is unavailable
 try {
@@ -35,7 +36,7 @@ export class Base_encryptor {
     private serialize_driver: Serializer;
 
     /** default serialize lib */
-    protected default_serialize_mode = 'json';
+    protected default_serialize_mode = 'php';
 
     /** constructor options */
     protected options: {
@@ -44,6 +45,9 @@ export class Base_encryptor {
         random_bytes?: number,
         serialize_mode?: 'json'|'php'
     };
+
+    /** for test only */
+    private raw_decrypted: any;
 
     /**
      * Return new Encryptor
@@ -132,6 +136,9 @@ export class Base_encryptor {
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
 
+        if(process.env.NODE_ENV === 'test')
+            this.raw_decrypted = decrypted;
+
         return this.ifserialized_unserialize(decrypted)
     }
 
@@ -142,8 +149,12 @@ export class Base_encryptor {
      *  return data serialized if need it
      *
      * @param data
+     * @param force_serialize
      */
-    protected prepareDataToCipher(data: any): string{
+    protected prepareDataToCipher(data: any, force_serialize?: boolean): string{
+        if(force_serialize === true && this.serialize_driver.getDriverName() === 'PhpSerializer') {
+            return this.serialize_driver.serialize(data);
+        }
 
         data = Base_encryptor.ifNumberToString(data);
 
@@ -457,5 +468,12 @@ export class Base_encryptor {
         }catch (e) {
             Base_encryptor.throwError(e.message);
         }
+    }
+
+    /**
+     * For testing only
+     */
+    getRawDecrypted(){
+        return this.raw_decrypted
     }
 }
