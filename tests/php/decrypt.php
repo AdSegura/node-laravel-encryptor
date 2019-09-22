@@ -1,5 +1,5 @@
 <?php
-include 'src/tests/php/Encrypter.php';
+include 'tests/php/Encrypter.php';
 
 $encrypted = $argv[1];
 

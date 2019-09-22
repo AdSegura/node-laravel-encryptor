@@ -6,7 +6,7 @@ const {describe, it} = require("mocha");
 const {expect} = require("chai");
 const chai = require("chai");
 const chaiHttp = require('chai-http');
-const {Encryptor} = require('../../');
+const {Encryptor} = require('../../dist');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const server_id = uuid();
 const url = '/integrator';

@@ -1,7 +1,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const http = require('http');
-const {Encryptor} = require('../../../');
+const {Encryptor} = require('../../dist');
 const cookie = require('cookie');
 
 export class ExpressServer {

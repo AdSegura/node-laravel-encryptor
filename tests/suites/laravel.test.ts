@@ -1,11 +1,11 @@
 const {it} = require("mocha");
 const {expect} = require("chai");
 const exec = require('child_process').exec;
-const {Encryptor} = require('../../');
+const {Encryptor} = require('../../dist');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const one_object = {foo: "bar"};
-const php_crypt = 'php src/tests/php/crypt.php';
-const php_decrypt = 'php src/tests/php/decrypt.php';
+const php_crypt = 'php tests/php/crypt.php';
+const php_decrypt = 'php tests/php/decrypt.php';
 
 export default function suite() {
 

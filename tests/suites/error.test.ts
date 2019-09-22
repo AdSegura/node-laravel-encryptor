@@ -1,6 +1,6 @@
 const {it} = require("mocha");
 const {expect} = require("chai");
-const {Encryptor} = require('../../');
+const {Encryptor} = require('../../dist');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};

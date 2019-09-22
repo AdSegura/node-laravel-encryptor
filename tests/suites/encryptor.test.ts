@@ -1,7 +1,6 @@
-const {describe, it} = require("mocha");
+const {it} = require("mocha");
 const {expect} = require("chai");
-const exec = require('child_process').exec;
-const {Encryptor} = require('../../');
+const {Encryptor} = require('../../dist');
 const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};
