@@ -1,5 +1,5 @@
 import {Base_encryptor} from "./base_encryptor";
-const crypto = require('crypto');
+import {EncryptorError} from "./lib/EncryptorError";
 
 // Cipher steps:
 // serialize
@@ -39,12 +39,12 @@ export class Encryptor extends Base_encryptor {
     /**
      * encrypt
      *
-     * @param data string, Buffer, TypedArray, or DataView
+     * @param data
      */
     public encrypt(data: any): Promise<any> {
+        if(! data) throw new EncryptorError('encrypt no data given');
 
-        const payload  = this.prepareData(data);
-
+        const payload  = this.prepareDataToCipher(data);
         return this
             .encryptIt(payload)
             .then(Encryptor.stringifyAndBase64, Encryptor.throwError)
@@ -53,61 +53,14 @@ export class Encryptor extends Base_encryptor {
     /**
      * encrypt Sync mode
      *
-     * @param data string, Buffer, TypedArray, or DataView
+     * @param data
      *
      */
     public encryptSync(data: any): string {
+        if(! data) throw new EncryptorError('encryptSync no data given');
 
-        const payload  = this.prepareData(data);
-
+        const payload  = this.prepareDataToCipher(data);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload))
-    }
-
-
-    /**
-     * encryptIt
-     *
-     * @return Promise object {iv, value, mac}
-     */
-    private encryptIt(data): Promise<any> {
-        return this
-            .generate_iv()
-            .then(this.createCypherIv())
-            .then(this.cipherIt(data))
-            .then(this.generateEncryptedObject())
-    }
-
-    /**
-     * crypto createCipheriv
-     *
-     * @return Promise crypto cipher
-     */
-    private createCypherIv(): any {
-        return (iv) => {
-            try {
-                 return {iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv)};
-            } catch (e) {
-                Encryptor.throwError(e.message);
-            }
-        }
-    }
-
-    /**
-     * generate a la Laravel Encrypted Object
-     *
-     * @param data
-     */
-    private cipherIt(data) {
-        return ({iv, cipher}: any) => {
-            try {
-                return {
-                    iv,
-                    value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
-                };
-            }catch (e) {
-                Encryptor.throwError(e.message);
-            }
-        }
     }
 
     /**
@@ -115,23 +68,13 @@ export class Encryptor extends Base_encryptor {
      *
      * @param data
      */
-    public decrypt(data): any {
-        return this.decryptIt(data)
+    public decrypt(data: string): any {
+        if(! data) throw new EncryptorError('decrypt no data given');
+
+        const payload = this.prepareDataToDecipher(data);
+        return this.decryptIt(payload)
     }
 
-    /**
-     * Generate 8 bytes IV
-     *
-     * @return Promise [16 hexadecimal string]
-     */
-    private generate_iv(): Promise<string> {
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(this.random_bytes, (err, buffer) => {
-                if (err) return reject(err);
-                resolve(buffer.toString('hex'))
-            });
-        });
-    }
 
     /**
      * static_decipher
@@ -139,27 +82,36 @@ export class Encryptor extends Base_encryptor {
      *
      * @param key
      * @param data
+     * @param serialize_mode
      */
-    static static_decipher(key, data){
+    static static_decipher(key: string, data: string, serialize_mode?: 'json|php'){
+        if(! key) throw new EncryptorError('static_decipher no key given');
+        if(! data) throw new EncryptorError('static_decipher no data given');
+
         const encrypt = new Encryptor({key});
-        return encrypt.decryptIt(data)
+        return encrypt.decrypt(data)
     }
 
     /**
      * static_cipher
-     *  helper method, run in sync mode
+     *  helper method
      * @param key
      * @param data
+     * @param serialize_mode
      * @param cb
      */
-    static static_cipher(key, data, cb?){
+    static static_cipher(key: string, data: any, serialize_mode?: 'json|php', cb?: any){
+        if(! key) throw new EncryptorError('static_cipher no key given');
+        if(! data) throw new EncryptorError('static_cipher no data given');
+
         const encrypt = new Encryptor({key});
 
-        if(typeof cb === 'function')
+        if(typeof cb === 'function') {
             encrypt.encrypt(data)
                 .then(enc => cb(null, enc))
                 .catch(e => cb(e));
-        else
+        }else {
             return encrypt.encryptSync(data)
+        }
     }
 }

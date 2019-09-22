@@ -37,40 +37,33 @@ const decipher = (response) => {
 };
 
 export default function suite() {
-    describe('Express Crypto Cookie Compatible with Laravel', function () {
+    it('should create one request to Express aSync Mode, receive cookie and decipher', done => {
+        options.async = true;
+        const server = new ExpressServer(options);
+        const requester = chai.request.agent(server).keepOpen();
 
-        it('should create one request to Express aSync Mode, receive cookie and decipher', done => {
+        requester.get(url)
+            .then(response => {
+                expect(decipher(response)).equals(server_id)
+            })
+            .then(() => {
+                requester.close();
+                done();
+            })
+    });
 
-            options.async = true;
-            const server = new ExpressServer(options);
-            const requester = chai.request.agent(server).keepOpen();
+    it('should create one request to Express Sync Mode, receive cookie and decipher', done => {
+        options.async = false;
+        const server = new ExpressServer(options);
+        const requester = chai.request.agent(server).keepOpen();
 
-
-            requester.get(url)
-                .then(response => {
-                    expect(decipher(response)).equals(server_id)
-                })
-                .then(() => {
-                    requester.close();
-                    done();
-                })
-        });
-
-        it('should create one request to Express Sync Mode, receive cookie and decipher', done => {
-
-            options.async = false;
-            const server = new ExpressServer(options);
-            const requester = chai.request.agent(server).keepOpen();
-
-            requester.get(url)
-                .then(response => {
-                    expect(decipher(response)).equals(server_id)
-                })
-                .then(() => {
-                    requester.close();
-                    done();
-                })
-        });
+        requester.get(url)
+            .then(response => {
+                expect(decipher(response)).equals(server_id)
+            })
+            .then(() => {
+                requester.close();
+                done();
+            })
     });
 }
-

@@ -1,7 +1,7 @@
-import {Serialize} from "./lib/Serialize";
+import {Serializer} from "./lib/Serializer";
 import {EncryptorError} from "./lib/EncryptorError";
+import cryptTypes from "crypto";
 let crypto;
-
 //Determining if crypto support is unavailable
 try {
     crypto = require('crypto');
@@ -32,20 +32,18 @@ export class Base_encryptor {
     /** Bytes number generateRandomKey default 32 */
     private static readonly app_key_length = 32;
     /** serialize driver */
-    private serialize_driver: Serialize;
+    private serialize_driver: Serializer;
 
     /** default serialize lib */
     protected default_serialize_mode = 'json';
 
     /** constructor options */
     protected options: {
-        laravel_key?: string,
         key?: string,
         key_length?: number,
         random_bytes?: number,
         serialize_mode?: 'json'|'php'
     };
-
 
     /**
      * Return new Encryptor
@@ -58,7 +56,7 @@ export class Base_encryptor {
 
         this.secret = Buffer.from(this.options.key, 'base64');
 
-        this.serialize_driver = new Serialize(this.options);
+        this.serialize_driver = new Serializer(this.options);
 
         this.setAlgorithm();
 
@@ -74,40 +72,52 @@ export class Base_encryptor {
      */
     protected setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
-            Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
+            Base_encryptor.throwError(
+                'The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.'
+            );
 
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
 
     /**
-     * Prepare Data
-     *  will receive data from this.encrypt(data)
-     *  and check if is a number to convert to string,
-     *  return data serialized if need it
+     * encryptIt
+     *
+     * @return Promise object {iv, value, mac}
+     */
+    protected encryptIt(data: string): Promise<any> {
+        return this
+            .generate_iv()
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject())
+    }
+
+    /**
+     * encryptIt
      *
      * @param data
+     * @return object {iv, value, mac}
      */
-    protected prepareData(data){
+    protected encryptItSync(data: string): any {
+        const iv = this.generate_iv_sync();
+        const cipher = this.createCipher(iv);
+        const value = Base_encryptor.cryptoUpdate(cipher, data);
 
-        if(! data) Base_encryptor.throwError('You are calling Encryptor without data to cipher');
-
-        data = Base_encryptor.ifNumberToString(data);
-
-        return this.ifObjectToString(data);
+        return this.generateEncryptedObject()({iv, value})
     }
 
     /**
      * decryptIt
      *
-     * @param payload
+     * @param encrypted
      */
-    protected decryptIt(payload){
+    protected decryptIt(encrypted: string): any{
 
-        payload = Base_encryptor.base64ToUtf8(payload);
+        let payload;
 
         try {
-            payload = JSON.parse(payload);
+           payload = JSON.parse(encrypted);
         } catch (e) {
             Base_encryptor.throwError('Encryptor decryptIt cannot parse json')
         }
@@ -126,11 +136,35 @@ export class Base_encryptor {
     }
 
     /**
+     * Prepare Data
+     *  will receive data from this.encrypt(data)
+     *  and check if is a number to convert to string,
+     *  return data serialized if need it
+     *
+     * @param data
+     */
+    protected prepareDataToCipher(data: any): string{
+
+        data = Base_encryptor.ifNumberToString(data);
+
+        return this.ifObjectToString(data);
+    }
+
+    /**
+     * prepareDataToDecipher
+     *  will parse base64 to utf8
+     * @param data
+     */
+    protected prepareDataToDecipher(data: any): string{
+        return Base_encryptor.base64ToUtf8(data);
+    }
+
+    /**
      * validPayload
      *
      * @param payload
      */
-    static validPayload(payload){
+    static validPayload(payload: any): boolean{
         return payload.hasOwnProperty('iv') && payload.hasOwnProperty('value') && payload.hasOwnProperty('mac')
                 && Buffer.from(payload.iv,'base64').toString('hex').length === 32;
     }
@@ -140,7 +174,7 @@ export class Base_encryptor {
      *
      * @param payload
      */
-     validMac(payload){
+     validMac(payload: any): boolean{
          try {
              const calculated = this.hashIt(payload.iv, payload.value);
              return crypto.timingSafeEqual(Buffer.from(calculated), Buffer.from(payload.mac))
@@ -149,18 +183,85 @@ export class Base_encryptor {
          }
      }
 
+
     /**
-     * encryptIt
+     * crypto update + final
+     *
+     * @param cipher
+     * @param data
+     */
+    static cryptoUpdate(cipher: cryptTypes.Cipher, data: string){
+            try{
+                return cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+            } catch (e) {
+                Base_encryptor.throwError(e.message);
+            }
+    }
+
+    /**
+     * Create node crypto cipher Iv
+     *
+     * @param iv
+     */
+    protected createCipher(iv: string): cryptTypes.Cipher{
+        try {
+            return crypto.createCipheriv(this.algorithm, this.secret, iv);
+        } catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
+    }
+
+    /**
+     * crypto createCipheriv
+     *
+     * @return Promise crypto cipher
+     */
+    protected createCypherIv(): any {
+        return (iv) => {
+                return {iv, cipher: this.createCipher(iv)};
+        }
+    }
+
+    /**
+     * generate a la Laravel Encrypted Object
      *
      * @param data
-     * @return object {iv, value, mac}
      */
-    protected encryptItSync(data): any {
-        const buf = crypto.randomBytes(this.random_bytes);
-        const iv = buf.toString('hex');
-        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
-        return this.generateEncryptedObject()({iv, value})
+    protected cipherIt(data: string): any {
+        return ({iv, cipher}: any) => {
+            return {
+                iv,
+                value: Base_encryptor.cryptoUpdate(cipher, data)
+            }
+        }
+    }
+
+    /**
+     * Generate 8 bytes IV
+     *
+     * @return Promise [16 hexadecimal string]
+     */
+    protected generate_iv(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            crypto.randomBytes(this.random_bytes, (err, buffer) => {
+                if (err) return reject(err);
+                resolve(buffer.toString('hex'))
+            });
+        });
+    }
+
+    /**
+     * Generate 8 bytes IV
+     *
+     * @return string [16 hexadecimal string]
+     */
+    protected generate_iv_sync(): string {
+        try {
+            const buf = crypto.randomBytes(this.random_bytes);
+            return buf.toString('hex');
+        }catch (e) {
+            Base_encryptor.throwError('generate_iv_sync error generating random bytes');
+        }
     }
 
     /**
@@ -183,7 +284,7 @@ export class Base_encryptor {
      * @param iv
      * @return crypto decipher
      */
-    protected createDecipheriv(iv) {
+    protected createDecipheriv(iv: string): cryptTypes.Decipher {
         try {
             return crypto.createDecipheriv(this.algorithm, this.secret, Buffer.from(iv, 'base64'));
         }catch (e) {
@@ -197,7 +298,7 @@ export class Base_encryptor {
      * @param payload
      * @param decipher
      */
-    static cryptoDecipher(payload, decipher) {
+    static cryptoDecipher(payload: {iv,value,mac}, decipher: cryptTypes.Decipher) {
         try {
             return decipher.update(payload.value, 'base64', 'utf8') + decipher.final('utf8');
         }catch (e) {
@@ -210,7 +311,7 @@ export class Base_encryptor {
      *
      * @param decrypted
      */
-    protected ifserialized_unserialize(decrypted) {
+    protected ifserialized_unserialize(decrypted: string): any {
         return this.serialize_driver.unSerialize(decrypted)
     }
 
@@ -221,7 +322,7 @@ export class Base_encryptor {
      * @param encrypted
      * @return hex string
      */
-    protected hashIt(iv, encrypted): any {
+    protected hashIt(iv: string, encrypted: string): string {
         try{
             const hmac = Base_encryptor.createHmac("sha256", this.secret);
             return hmac
@@ -238,7 +339,7 @@ export class Base_encryptor {
      * @param data
      * @return serialized data
      */
-    protected serialize(data): any {
+    protected serialize(data: any): string {
         return this.serialize_driver.serialize(data)
     }
 
@@ -248,7 +349,7 @@ export class Base_encryptor {
      * @param data
      * @return unserialized data
      */
-    protected unserialize(data): any {
+    protected unserialize(data: string): any {
         return this.serialize_driver.unSerialize(data)
     }
 
@@ -258,7 +359,7 @@ export class Base_encryptor {
      * @param data
      * @return base64 string
      */
-    static toBase64(data): any {
+    static toBase64(data): string {
         return Buffer.from(data).toString('base64');
     }
 
@@ -268,7 +369,10 @@ export class Base_encryptor {
      * @param data
      * @return utf8 string
      */
-    static base64ToUtf8(data): any {
+    static base64ToUtf8(data: string): string {
+        if(typeof data !== 'string')
+            throw new EncryptorError('base64ToUtf8 Error data arg not a string');
+
         return Buffer.from(data, 'base64').toString('utf8');
     }
 
@@ -278,7 +382,7 @@ export class Base_encryptor {
      * @param alg
      * @param secret
      */
-    static createHmac(alg, secret) {
+    static createHmac(alg: string, secret: Buffer): cryptTypes.Hmac {
         try{
             return crypto.createHmac(alg, secret);
         } catch (e) {
@@ -293,7 +397,7 @@ export class Base_encryptor {
      * @param iv
      * @param encrypted
      */
-    static setHmacPayload(iv, encrypted) {
+    static setHmacPayload(iv: string, encrypted: string): Buffer {
         return Buffer.from(iv + encrypted, 'utf-8')
     }
 
@@ -304,9 +408,9 @@ export class Base_encryptor {
      * @param encrypted {iv, value, mac}
      * @return string base64
      */
-    static stringifyAndBase64(encrypted) {
-        encrypted = JSON.stringify(encrypted);
-        return Buffer.from(encrypted).toString('base64');
+    static stringifyAndBase64(encrypted: {iv, value, mac}): string {
+        const payload = JSON.stringify(encrypted);
+        return Buffer.from(payload).toString('base64');
     }
 
     /**
@@ -314,7 +418,7 @@ export class Base_encryptor {
      *
      * @param data
      */
-    protected ifObjectToString(data){
+    protected ifObjectToString(data: any): string{
         return (typeof data === 'object') ?  this.serialize(data) : data;
     }
 
@@ -324,7 +428,7 @@ export class Base_encryptor {
      *
      * @param data
      */
-    static ifNumberToString(data){
+    static ifNumberToString(data: any): string{
         return (typeof data === 'number') ?  data + '' : data;
     }
 

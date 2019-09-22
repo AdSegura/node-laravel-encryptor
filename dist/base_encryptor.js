@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Serialize_1 = require("./lib/Serialize");
+const Serializer_1 = require("./lib/Serializer");
 const EncryptorError_1 = require("./lib/EncryptorError");
 let crypto;
 try {
@@ -17,7 +17,7 @@ class Base_encryptor {
         this.default_serialize_mode = 'json';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
         this.secret = Buffer.from(this.options.key, 'base64');
-        this.serialize_driver = new Serialize_1.Serialize(this.options);
+        this.serialize_driver = new Serializer_1.Serializer(this.options);
         this.setAlgorithm();
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
@@ -27,16 +27,23 @@ class Base_encryptor {
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
     }
-    prepareData(data) {
-        if (!data)
-            Base_encryptor.throwError('You are calling Encryptor without data to cipher');
-        data = Base_encryptor.ifNumberToString(data);
-        return this.ifObjectToString(data);
+    encryptIt(data) {
+        return this
+            .generate_iv()
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject());
     }
-    decryptIt(payload) {
-        payload = Base_encryptor.base64ToUtf8(payload);
+    encryptItSync(data) {
+        const iv = this.generate_iv_sync();
+        const cipher = this.createCipher(iv);
+        const value = Base_encryptor.cryptoUpdate(cipher, data);
+        return this.generateEncryptedObject()({ iv, value });
+    }
+    decryptIt(encrypted) {
+        let payload;
         try {
-            payload = JSON.parse(payload);
+            payload = JSON.parse(encrypted);
         }
         catch (e) {
             Base_encryptor.throwError('Encryptor decryptIt cannot parse json');
@@ -48,6 +55,13 @@ class Base_encryptor {
         const decipherIv = this.createDecipheriv(payload.iv);
         const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
         return this.ifserialized_unserialize(decrypted);
+    }
+    prepareDataToCipher(data) {
+        data = Base_encryptor.ifNumberToString(data);
+        return this.ifObjectToString(data);
+    }
+    prepareDataToDecipher(data) {
+        return Base_encryptor.base64ToUtf8(data);
     }
     static validPayload(payload) {
         return payload.hasOwnProperty('iv') && payload.hasOwnProperty('value') && payload.hasOwnProperty('mac')
@@ -62,12 +76,52 @@ class Base_encryptor {
             return false;
         }
     }
-    encryptItSync(data) {
-        const buf = crypto.randomBytes(this.random_bytes);
-        const iv = buf.toString('hex');
-        const cipher = crypto.createCipheriv(this.algorithm, this.secret, iv);
-        const value = cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
-        return this.generateEncryptedObject()({ iv, value });
+    static cryptoUpdate(cipher, data) {
+        try {
+            return cipher.update(data, 'utf8', 'base64') + cipher.final('base64');
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
+    }
+    createCipher(iv) {
+        try {
+            return crypto.createCipheriv(this.algorithm, this.secret, iv);
+        }
+        catch (e) {
+            Base_encryptor.throwError(e.message);
+        }
+    }
+    createCypherIv() {
+        return (iv) => {
+            return { iv, cipher: this.createCipher(iv) };
+        };
+    }
+    cipherIt(data) {
+        return ({ iv, cipher }) => {
+            return {
+                iv,
+                value: Base_encryptor.cryptoUpdate(cipher, data)
+            };
+        };
+    }
+    generate_iv() {
+        return new Promise((resolve, reject) => {
+            crypto.randomBytes(this.random_bytes, (err, buffer) => {
+                if (err)
+                    return reject(err);
+                resolve(buffer.toString('hex'));
+            });
+        });
+    }
+    generate_iv_sync() {
+        try {
+            const buf = crypto.randomBytes(this.random_bytes);
+            return buf.toString('hex');
+        }
+        catch (e) {
+            Base_encryptor.throwError('generate_iv_sync error generating random bytes');
+        }
     }
     generateEncryptedObject() {
         return ({ iv, value }) => {
@@ -119,6 +173,8 @@ class Base_encryptor {
         return Buffer.from(data).toString('base64');
     }
     static base64ToUtf8(data) {
+        if (typeof data !== 'string')
+            throw new EncryptorError_1.EncryptorError('base64ToUtf8 Error data arg not a string');
         return Buffer.from(data, 'base64').toString('utf8');
     }
     static createHmac(alg, secret) {
@@ -133,8 +189,8 @@ class Base_encryptor {
         return Buffer.from(iv + encrypted, 'utf-8');
     }
     static stringifyAndBase64(encrypted) {
-        encrypted = JSON.stringify(encrypted);
-        return Buffer.from(encrypted).toString('base64');
+        const payload = JSON.stringify(encrypted);
+        return Buffer.from(payload).toString('base64');
     }
     ifObjectToString(data) {
         return (typeof data === 'object') ? this.serialize(data) : data;

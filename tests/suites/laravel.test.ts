@@ -29,7 +29,6 @@ export default function suite() {
     });
 
     it('should decipher from Laravel correctly with serialize_mode php', done => {
-
         const encryptor = new Encryptor({
             key,
             serialize_mode:'php'
@@ -49,7 +48,6 @@ export default function suite() {
 
     it('should decipher data, Sync Mode, at Laravel correctly with serialize_mode php', done => {
         const encryptor = new Encryptor({key, serialize_mode:'php'});
-
         let enc = encryptor.encryptSync(one_object);
 
         exec(`${php_decrypt} ${enc}`, function (err, stdout, stderr) {

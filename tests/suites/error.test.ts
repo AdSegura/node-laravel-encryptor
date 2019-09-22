@@ -18,14 +18,26 @@ export default function suite() {
         }
     });
 
-    it('should throw EncryptorError when data to encrypt is null', done => {
+    it("should throw 'encrypt no data given' EncryptorError when data to encrypt is null", done => {
         const encryptor = new Encryptor({key});
         try {
             encryptor
                 .encrypt(null)
         } catch (e) {
             expect(e.name).equal('EncryptorError');
-            expect(e.message).equal('You are calling Encryptor without data to cipher');
+            expect(e.message).equal('encrypt no data given');
+            done();
+        }
+    });
+
+    it("should throw 'decrypt no data given' EncryptorError when data to decrypt is null", done => {
+        const encryptor = new Encryptor({key});
+        try {
+            encryptor
+                .decrypt(null)
+        } catch (e) {
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('decrypt no data given');
             done();
         }
     });
@@ -45,7 +57,6 @@ export default function suite() {
     });
 
     it("should throw 'not valid algorithm' EncryptorError when cipher", done => {
-
         try {
             new Encryptor({
                 key,
@@ -138,6 +149,16 @@ export default function suite() {
             expect(e.name).equal('EncryptorError');
             expect(e.message).equal('The payload is invalid.');
             done()
+        }
+    });
+
+    it('should throw unknown Serialize EncryptorError Error when options.serialize_mode != json/php ', done => {
+        try {
+            new Encryptor({key, serialize_mode: 'foo'});
+        } catch (e) {
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('Serializer Encryptor Class unknown option foo serialize_mode');
+            done();
         }
     });
 }

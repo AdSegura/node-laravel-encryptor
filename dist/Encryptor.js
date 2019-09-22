@@ -1,75 +1,53 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const base_encryptor_1 = require("./base_encryptor");
-const crypto = require('crypto');
+const EncryptorError_1 = require("./lib/EncryptorError");
 class Encryptor extends base_encryptor_1.Base_encryptor {
     constructor(options) {
         super(options);
     }
     encrypt(data) {
-        const payload = this.prepareData(data);
+        if (!data)
+            throw new EncryptorError_1.EncryptorError('encrypt no data given');
+        const payload = this.prepareDataToCipher(data);
         return this
             .encryptIt(payload)
             .then(Encryptor.stringifyAndBase64, Encryptor.throwError);
     }
     encryptSync(data) {
-        const payload = this.prepareData(data);
+        if (!data)
+            throw new EncryptorError_1.EncryptorError('encryptSync no data given');
+        const payload = this.prepareDataToCipher(data);
         return Encryptor.stringifyAndBase64(this.encryptItSync(payload));
     }
-    encryptIt(data) {
-        return this
-            .generate_iv()
-            .then(this.createCypherIv())
-            .then(this.cipherIt(data))
-            .then(this.generateEncryptedObject());
-    }
-    createCypherIv() {
-        return (iv) => {
-            try {
-                return { iv, cipher: crypto.createCipheriv(this.algorithm, this.secret, iv) };
-            }
-            catch (e) {
-                Encryptor.throwError(e.message);
-            }
-        };
-    }
-    cipherIt(data) {
-        return ({ iv, cipher }) => {
-            try {
-                return {
-                    iv,
-                    value: cipher.update(data, 'utf8', 'base64') + cipher.final('base64')
-                };
-            }
-            catch (e) {
-                Encryptor.throwError(e.message);
-            }
-        };
-    }
     decrypt(data) {
-        return this.decryptIt(data);
+        if (!data)
+            throw new EncryptorError_1.EncryptorError('decrypt no data given');
+        const payload = this.prepareDataToDecipher(data);
+        return this.decryptIt(payload);
     }
-    generate_iv() {
-        return new Promise((resolve, reject) => {
-            crypto.randomBytes(this.random_bytes, (err, buffer) => {
-                if (err)
-                    return reject(err);
-                resolve(buffer.toString('hex'));
-            });
-        });
-    }
-    static static_decipher(key, data) {
+    static static_decipher(key, data, serialize_mode) {
+        if (!key)
+            throw new EncryptorError_1.EncryptorError('static_decipher no key given');
+        if (!data)
+            throw new EncryptorError_1.EncryptorError('static_decipher no data given');
         const encrypt = new Encryptor({ key });
-        return encrypt.decryptIt(data);
+        return encrypt.decrypt(data);
     }
-    static static_cipher(key, data, cb) {
+    static static_cipher(key, data, serialize_mode, cb) {
+        if (!key)
+            throw new EncryptorError_1.EncryptorError('static_cipher no key given');
+        if (!data)
+            throw new EncryptorError_1.EncryptorError('static_cipher no data given');
         const encrypt = new Encryptor({ key });
-        if (typeof cb === 'function')
+        if (typeof cb === 'function') {
             encrypt.encrypt(data)
                 .then(enc => cb(null, enc))
                 .catch(e => cb(e));
-        else
+        }
+        else {
             return encrypt.encryptSync(data);
+        }
     }
 }
 exports.Encryptor = Encryptor;
