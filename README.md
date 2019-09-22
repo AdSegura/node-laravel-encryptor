@@ -40,7 +40,7 @@ console.log(encryptor.decrypt(enc));
 
 Decrypt is always in sync mode.
 
-### Serialize `<php>|<json>`
+### Serialize `<php>`|`<json>`
 
 Encryptor let you chose between `php-serialize` npm package or `JSON` node native implementation to serialize the data.
 
@@ -97,18 +97,17 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 ### Static static_decipher(key, data)
 * arguments:
     * key:  `<string>` base64 encoded key
-    * data: `<string>|<object>|<number>`
+    * data: `<string>`|`<object>`|`<number>`
 * return `<string>` base64
 * throw EncryptorError
 
 ### Static static_cipher(key, data, [cb])
 * arguments:
     * key:  `<string>` base64 encoded key
-    * data: `<string>`|<object>|<number>
+    * data: `<string>`|`<object>`|`<number>`
     * cb:   `<function>` optional callback
- * return `<string>` base64
- * throw EncryptorError
-
+* return `<string>` base64
+* throw EncryptorError
 
 # Tests
 
