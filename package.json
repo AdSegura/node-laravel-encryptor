@@ -15,8 +15,7 @@
   ],
   "homepage": "https://github.com/AdSegura/node-laravel-encryptor/blob/master/README.md",
   "scripts": {
-    "build": "npm run copy && tsc",
-    "copy": "node_modules/.bin/copyfiles -u 1 src/tests/php/* dist/",
+    "build": "tsc",
     "dev": "tsc -w",
     "test": "node_modules/.bin/_mocha --exit dist/tests/index.js",
     "artillery_expect": "artillery run src/tests/artillery/artillery_expect.yml",
@@ -34,7 +33,6 @@
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
     "cookie-parser": "^1.4.4",
-    "copyfiles": "^2.1.1",
     "express": "^4.17.1",
     "mocha": "^6.2.0",
     "typescript": "^2.9.2",

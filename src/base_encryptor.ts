@@ -1,5 +1,5 @@
-import {Serialize} from "./Serialize";
-import {EncryptorError} from "./EncryptorError";
+import {Serialize} from "./lib/Serialize";
+import {EncryptorError} from "./lib/EncryptorError";
 let crypto;
 
 //Determining if crypto support is unavailable

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const Serialize_1 = require("./Serialize");
-const EncryptorError_1 = require("./EncryptorError");
+const Serialize_1 = require("./lib/Serialize");
+const EncryptorError_1 = require("./lib/EncryptorError");
 let crypto;
 try {
     crypto = require('crypto');

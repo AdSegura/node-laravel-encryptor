@@ -1,5 +1,5 @@
 <?php
-include 'dist/tests/php/Encrypter.php';
+include 'src/tests/php/Encrypter.php';
 
 $encrypted = $argv[1];
 
