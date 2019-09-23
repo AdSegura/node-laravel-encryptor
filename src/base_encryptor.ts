@@ -1,7 +1,9 @@
 import {Serializer} from "./lib/Serializer";
 import {EncryptorError} from "./lib/EncryptorError";
-import cryptTypes from "crypto";
 import {PhpSerializer} from "./serializers/phpSerializer";
+import {JsonSerializer} from "./serializers/jsonSerializer";
+import cryptTypes from "crypto";
+
 let crypto;
 //Determining if crypto support is unavailable
 try {
@@ -60,13 +62,34 @@ export class Base_encryptor {
 
         this.secret = Buffer.from(this.options.key, 'base64');
 
-        this.serialize_driver = new Serializer(this.options);
+        this.serialize_driver = new Serializer(this.pickSerializeDriver());
 
         this.setAlgorithm();
 
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
 
+    /**
+     * pickSerializeDriver
+     */
+    pickSerializeDriver(){
+        if(! this.options.serialize_mode)
+            this.options.serialize_mode ='php';
+
+        switch (this.options.serialize_mode) {
+            case 'json': {
+                return new JsonSerializer;
+            }
+            case 'php': {
+                return new PhpSerializer;
+            }
+            default: {
+                throw new EncryptorError(
+                    `Serializer Encryptor Class unknown option ${this.options.serialize_mode} serialize_mode`
+                )
+            }
+        }
+    }
     /**
      * setAlgorithm
      *  will populate this.algorithm with valid one aes-[128]-cbc aes-[256]-cbc

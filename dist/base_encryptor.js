@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const Serializer_1 = require("./lib/Serializer");
 const EncryptorError_1 = require("./lib/EncryptorError");
+const phpSerializer_1 = require("./serializers/phpSerializer");
+const jsonSerializer_1 = require("./serializers/jsonSerializer");
 let crypto;
 try {
     crypto = require('crypto');
@@ -17,9 +19,24 @@ class Base_encryptor {
         this.default_serialize_mode = 'php';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
         this.secret = Buffer.from(this.options.key, 'base64');
-        this.serialize_driver = new Serializer_1.Serializer(this.options);
+        this.serialize_driver = new Serializer_1.Serializer(this.pickSerializeDriver());
         this.setAlgorithm();
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
+    }
+    pickSerializeDriver() {
+        if (!this.options.serialize_mode)
+            this.options.serialize_mode = 'php';
+        switch (this.options.serialize_mode) {
+            case 'json': {
+                return new jsonSerializer_1.JsonSerializer;
+            }
+            case 'php': {
+                return new phpSerializer_1.PhpSerializer;
+            }
+            default: {
+                throw new EncryptorError_1.EncryptorError(`Serializer Encryptor Class unknown option ${this.options.serialize_mode} serialize_mode`);
+            }
+        }
     }
     setAlgorithm() {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
