@@ -79,15 +79,16 @@ const encryptor = new Encryptor({key, serialize_mode: 'json'});
 * arguments:
  * options `<object>` {key, key_length} 
     * key: `<string>` APP_KEY without `base64:` 
-    * key_length: `<number>` [optional] 32|64 for aes-[128]-cbc aes-[256]-cbc
-    * serialize_mode: `<string>` [optional] values php|json
+    * key_length: `<number>` [optional] [default] `<64>` values 32|64 for aes-[128]-cbc aes-[256]-cbc
+    * serialize_mode: `<string>` [optional] [default] `<php>` values `<php>`|`<json>`
 
 if no `key_length` is given default is 64.
 
 ## Methods
-### encrypt(data)
+### encrypt(data, force_serialize)
 * arguments:
     * data: `<string>|<object>|<number>`
+    * force_serialize: `<boolean>` [optional] 
 * return `<string>` base64
 * throw EncryptorError
 
