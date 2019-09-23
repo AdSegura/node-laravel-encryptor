@@ -23,6 +23,37 @@ class Base_encryptor {
         this.secret = Base_encryptor.prepareAppKey(this.options.key);
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
+    encryptIt(data) {
+        return this
+            .generate_iv()
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject());
+    }
+    encryptItSync(data) {
+        const iv = this.generate_iv_sync();
+        const cipher = this.createCipher(iv);
+        const value = Base_encryptor.cryptoUpdate(cipher, data);
+        return this.generateEncryptedObject()({ iv, value });
+    }
+    decryptIt(encrypted) {
+        let payload;
+        try {
+            payload = JSON.parse(encrypted);
+        }
+        catch (e) {
+            Base_encryptor.throwError('Encryptor decryptIt cannot parse json');
+        }
+        if (!Base_encryptor.validPayload(payload))
+            Base_encryptor.throwError('The payload is invalid.');
+        if (!this.validMac(payload))
+            Base_encryptor.throwError('The MAC is invalid.');
+        const decipherIv = this.createDecipheriv(payload.iv);
+        const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
+        if (process.env.NODE_ENV === 'test')
+            this.raw_decrypted = decrypted;
+        return this.ifserialized_unserialize(decrypted);
+    }
     static prepareAppKey(key) {
         if (!key)
             Base_encryptor.throwError('no app key given');
@@ -73,37 +104,6 @@ class Base_encryptor {
             Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
-    }
-    encryptIt(data) {
-        return this
-            .generate_iv()
-            .then(this.createCypherIv())
-            .then(this.cipherIt(data))
-            .then(this.generateEncryptedObject());
-    }
-    encryptItSync(data) {
-        const iv = this.generate_iv_sync();
-        const cipher = this.createCipher(iv);
-        const value = Base_encryptor.cryptoUpdate(cipher, data);
-        return this.generateEncryptedObject()({ iv, value });
-    }
-    decryptIt(encrypted) {
-        let payload;
-        try {
-            payload = JSON.parse(encrypted);
-        }
-        catch (e) {
-            Base_encryptor.throwError('Encryptor decryptIt cannot parse json');
-        }
-        if (!Base_encryptor.validPayload(payload))
-            Base_encryptor.throwError('The payload is invalid.');
-        if (!this.validMac(payload))
-            Base_encryptor.throwError('The MAC is invalid.');
-        const decipherIv = this.createDecipheriv(payload.iv);
-        const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
-        if (process.env.NODE_ENV === 'test')
-            this.raw_decrypted = decrypted;
-        return this.ifserialized_unserialize(decrypted);
     }
     prepareDataToCipher(data, force_serialize) {
         if (force_serialize === true && this.serialize_driver.getDriverName() === 'PhpSerializer') {

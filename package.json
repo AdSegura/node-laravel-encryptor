@@ -1,7 +1,11 @@
 {
   "name": "node-laravel-encryptor",
+  "engines": {
+    "node": ">=8.16.1",
+    "npm": ">=6.4.1"
+  },
   "module": "dist/index.js",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "node version Laravel Illuminate/Encryption/Encrypter.php",
   "main": "dist/index.js",
   "repository": {

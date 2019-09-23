@@ -3,7 +3,6 @@ import {EncryptorError} from "./lib/EncryptorError";
 import {PhpSerializer} from "./serializers/phpSerializer";
 import {JsonSerializer} from "./serializers/jsonSerializer";
 import cryptTypes from "crypto";
-import {MockSerializer} from "./serializers/mockSerializer";
 
 let crypto;
 //Determining if crypto support is unavailable
@@ -60,26 +59,82 @@ export class Base_encryptor {
      * @param driver
      */
     constructor(options, driver?: Serializer) {
-
         this.options = Object.assign({}, {serialize_mode: this.default_serialize_mode}, options);
 
         this.setSerializerDriver(driver);
-
         this.setAlgorithm();
 
         this.secret = Base_encryptor.prepareAppKey(this.options.key);
-
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
     }
 
     /**
+     * encryptIt
+     *
+     * @return Promise object {iv, value, mac}
+     */
+    protected encryptIt(data: string): Promise<any> {
+        return this
+            .generate_iv()
+            .then(this.createCypherIv())
+            .then(this.cipherIt(data))
+            .then(this.generateEncryptedObject())
+    }
+
+    /**
+     * encryptIt
+     *
+     * @param data
+     * @return object {iv, value, mac}
+     */
+    protected encryptItSync(data: string): any {
+        const iv = this.generate_iv_sync();
+        const cipher = this.createCipher(iv);
+        const value = Base_encryptor.cryptoUpdate(cipher, data);
+
+        return this.generateEncryptedObject()({iv, value})
+    }
+
+    /**
+     * decryptIt
+     *
+     * @param encrypted
+     */
+    protected decryptIt(encrypted: string): any{
+        let payload;
+
+        try {
+            payload = JSON.parse(encrypted);
+        } catch (e) {
+            Base_encryptor.throwError('Encryptor decryptIt cannot parse json')
+        }
+
+        //check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
+        if(! Base_encryptor.validPayload(payload))
+            Base_encryptor.throwError('The payload is invalid.');
+
+        if(! this.validMac(payload))
+            Base_encryptor.throwError('The MAC is invalid.');
+
+        const decipherIv = this.createDecipheriv(payload.iv);
+        const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
+
+        if(process.env.NODE_ENV === 'test')
+            this.raw_decrypted = decrypted;
+
+        return this.ifserialized_unserialize(decrypted)
+    }
+
+    /**
      * prepareAppKey
+     *
+     * @param key
      */
     static prepareAppKey(key: string): Buffer{
         if(! key)
             Base_encryptor.throwError('no app key given');
 
-       return Buffer.from(key, 'base64');
+        return Buffer.from(key, 'base64');
     }
 
     /**
@@ -91,9 +146,8 @@ export class Base_encryptor {
         if(driver) {
             if(! Base_encryptor.validateSerializerDriver(driver))
                 Base_encryptor.throwError('validateSerializerDriver');
-
-            this.serialize_driver = new Serializer(new driver);
-            this.options.serialize_mode = 'custom';
+                this.serialize_driver = new Serializer(new driver);
+                this.options.serialize_mode = 'custom';
         }else{
             this.serialize_driver = new Serializer(this.pickSerializeDriver());
         }
@@ -160,64 +214,6 @@ export class Base_encryptor {
 
         this.algorithm = this.options.key_length ?
             `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
-    }
-
-    /**
-     * encryptIt
-     *
-     * @return Promise object {iv, value, mac}
-     */
-    protected encryptIt(data: string): Promise<any> {
-        return this
-            .generate_iv()
-            .then(this.createCypherIv())
-            .then(this.cipherIt(data))
-            .then(this.generateEncryptedObject())
-    }
-
-    /**
-     * encryptIt
-     *
-     * @param data
-     * @return object {iv, value, mac}
-     */
-    protected encryptItSync(data: string): any {
-        const iv = this.generate_iv_sync();
-        const cipher = this.createCipher(iv);
-        const value = Base_encryptor.cryptoUpdate(cipher, data);
-
-        return this.generateEncryptedObject()({iv, value})
-    }
-
-    /**
-     * decryptIt
-     *
-     * @param encrypted
-     */
-    protected decryptIt(encrypted: string): any{
-
-        let payload;
-
-        try {
-           payload = JSON.parse(encrypted);
-        } catch (e) {
-            Base_encryptor.throwError('Encryptor decryptIt cannot parse json')
-        }
-
-        //check hmac payload.mac with crypto.timingSafeEqual to prevent timing attacks
-        if(! Base_encryptor.validPayload(payload))
-            Base_encryptor.throwError('The payload is invalid.');
-
-        if(! this.validMac(payload))
-            Base_encryptor.throwError('The MAC is invalid.');
-
-        const decipherIv = this.createDecipheriv(payload.iv);
-        const decrypted = Base_encryptor.cryptoDecipher(payload, decipherIv);
-
-        if(process.env.NODE_ENV === 'test')
-            this.raw_decrypted = decrypted;
-
-        return this.ifserialized_unserialize(decrypted)
     }
 
     /**

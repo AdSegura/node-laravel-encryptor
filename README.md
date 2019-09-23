@@ -108,40 +108,56 @@ export interface Serialize_Interface {
 
 ### Methods
 #### encrypt(data, force_serialize)
+> Will encrypt data with MAC signature, and return a Promise with encrypted base64 string.
+
+With `force_serialize` (only apply with `serialize_mode:'php'`) you can force Encryptor to serialize data 
+before cipher even if data is not an object.
+    
+`force_serialize`, will not take any effect if Encryptor is using other serializer driver than `php-serialize` module.  
 * arguments:
     * data: `<string>`|`<object>`|`<number>`
     * force_serialize: `<boolean>` [optional] 
-* return Promise `<string>` base64
+* return Promise `<string>` base64 json encoded object `{iv, value, mac}`
 * throw EncryptorError
 
 #### decrypt(data)
+> Will decrypt data with MAC signature verification, and return original data.
 * arguments:
     * data: `<string>`|`<object>`|`<number>`
 * return `<string>`|`<object>`
 * throw EncryptorError
 
 #### encryptSync(data, force_serialize)
+> Will encrypt data with MAC signature, and return encrypted base64 string.
+
+With `force_serialize` (only apply with `serialize_mode:'php'`) you can force Encryptor to serialize data 
+before cipher even if data is not an object.
+    
+`force_serialize`, will not take any effect if Encryptor is using other serializer driver than `php-serialize` module.
 * arguments:
     * data: `<string>`|`<object>`|`<number>`
     * force_serialize: `<boolean>` [optional] 
-* return `<string>` base64
+* return `<string>` base64 json encoded object `{iv, value, mac}`
 * throw EncryptorError
 
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
-#### cipher.setSerializerDriver(custom_Serializer_lib)
+#### setSerializerDriver(custom_Serializer_lib)
+> Will inject custom serializer driver to Encryptor Class
 * arguments:
     * custom_Serializer_lib: `object class serialize module` 
 * return `<void>`
 * throw EncryptorError
 
 #### Static generateRandomKey()
+> Will generate valid App_key a la Laravel
 * arguments:
     * length: `<number>` [optional], default 32   
 * return `<string>` base64
 * throw EncryptorError
 
 #### Static static_decipher(key, data)
+> will decipher data
 * arguments:
     * key:  `<string>` base64 encoded key
     * data: `<string>`|`<object>`|`<number>`
@@ -149,6 +165,7 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 * throw EncryptorError
 
 #### Static static_cipher(key, data, [cb])
+> will cipher data
 * arguments:
     * key:  `<string>` base64 encoded key
     * data: `<string>`|`<object>`|`<number>`
@@ -181,8 +198,6 @@ $> npm run test
     Test Encryptor Cipher/Decipher serialize_mode: PHP Serialize
       ✓ should cipher and decipher text
       ✓ should cipher and decipher object
-      ✓ should set serialized_mode to php-serialized if no serialize_mode given
-      ✓ should force serialize data input when serializer driver is php-serialized and data is not an object
       ✓ should cipher and decipher with no key_length defined
       ✓ should cipher and decipher a number
       ✓ should cipher and decipher Sync Mode
@@ -204,17 +219,20 @@ $> npm run test
       ✓ should throw 'validateSerializerDriver' EncryptorError when custom serializer driver not implements Serializer interface
       ✓ should throw 'Serializer Encryptor Class unknown option' EncryptorError when options.serialize_mode != json/php 
     Test Encryptor Class Serialize driver injection
+      ✓ should set serialized_mode to php-serialized if no serialize_mode given
+      ✓ should force serialize data input when serializer driver is php-serialized and data is not an object
       ✓ should inject custom serializer driver in constructor
       ✓ should inject custom serializer driver at runtime
+      ✓ should use injected serializer driver to serialize/deserialize data
     Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
       ✓ should decipher data at Laravel correctly with serialize_mode php (60ms)
-      ✓ should decipher from Laravel correctly with serialize_mode php (55ms)
-      ✓ should decipher data, Sync Mode, at Laravel correctly with serialize_mode php (54ms)
+      ✓ should decipher from Laravel correctly with serialize_mode php (56ms)
+      ✓ should decipher data, Sync Mode, at Laravel correctly with serialize_mode php (58ms)
     Test integration with Express cookie
-      ✓ should create one request to Express aSync Mode, receive cookie and decipher (43ms)
+      ✓ should create one request to Express aSync Mode, receive cookie and decipher (39ms)
       ✓ should create one request to Express Sync Mode, receive cookie and decipher
-
-  34 passing (265ms)
+      
+  35 passing (296ms)
 ```
 
 ### Artillery test
