@@ -26,6 +26,9 @@ export class Serializer{
         return this.driver.unSerialize(data);
     }
 
+    /**
+     * get driver class name
+     */
     getDriverName(){
         return this.driver.constructor.name
     }

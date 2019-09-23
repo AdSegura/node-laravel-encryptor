@@ -12,16 +12,41 @@ catch (e) {
     throw new EncryptorError_1.EncryptorError(e.message);
 }
 class Base_encryptor {
-    constructor(options) {
+    constructor(options, driver) {
         this.key_length = 64;
         this.valid_key_lengths = [32, 64];
         this.random_bytes = 8;
         this.default_serialize_mode = 'php';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
         this.secret = Buffer.from(this.options.key, 'base64');
-        this.serialize_driver = new Serializer_1.Serializer(this.pickSerializeDriver());
+        this.setSerializerDriver(driver);
         this.setAlgorithm();
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
+    }
+    setSerializerDriver(driver) {
+        if (driver) {
+            if (!Base_encryptor.validateSerializerDriver(driver))
+                Base_encryptor.throwError('validateSerializerDriver');
+            this.serialize_driver = new Serializer_1.Serializer(new driver);
+            this.options.serialize_mode = 'custom';
+        }
+        else {
+            this.serialize_driver = new Serializer_1.Serializer(this.pickSerializeDriver());
+        }
+    }
+    static validateSerializerDriver(driver) {
+        try {
+            const custom_driver = new driver;
+            return Base_encryptor
+                .validateSerializerImplementsSerializerInterface(custom_driver);
+        }
+        catch (e) {
+            Base_encryptor.throwError('validateSerializerDriver');
+        }
+    }
+    static validateSerializerImplementsSerializerInterface(driver) {
+        return (typeof driver['serialize'] === 'function')
+            && (typeof driver['unSerialize'] === 'function');
     }
     pickSerializeDriver() {
         if (!this.options.serialize_mode)

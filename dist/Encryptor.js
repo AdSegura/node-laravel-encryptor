@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const base_encryptor_1 = require("./base_encryptor");
 const EncryptorError_1 = require("./lib/EncryptorError");
 class Encryptor extends base_encryptor_1.Base_encryptor {
-    constructor(options) {
-        super(options);
+    constructor(options, driver) {
+        super(options, driver);
     }
     encrypt(data, force_serialize) {
         if (!data)

@@ -3,6 +3,7 @@ import {EncryptorError} from "./lib/EncryptorError";
 import {PhpSerializer} from "./serializers/phpSerializer";
 import {JsonSerializer} from "./serializers/jsonSerializer";
 import cryptTypes from "crypto";
+import {MockSerializer} from "./serializers/mockSerializer";
 
 let crypto;
 //Determining if crypto support is unavailable
@@ -34,6 +35,7 @@ export class Base_encryptor {
 
     /** Bytes number generateRandomKey default 32 */
     private static readonly app_key_length = 32;
+
     /** serialize driver */
     private serialize_driver: Serializer;
 
@@ -45,7 +47,7 @@ export class Base_encryptor {
         key?: string,
         key_length?: number,
         random_bytes?: number,
-        serialize_mode?: 'json'|'php'
+        serialize_mode?: 'json'|'php'|'custom'
     };
 
     /** for test only */
@@ -55,18 +57,61 @@ export class Base_encryptor {
      * Return new Encryptor
      *
      * @param options {key: string, key_length?: number }
+     * @param driver
      */
-    constructor(options) {
+    constructor(options, driver?: Serializer) {
 
         this.options = Object.assign({}, {serialize_mode: this.default_serialize_mode}, options);
 
         this.secret = Buffer.from(this.options.key, 'base64');
 
-        this.serialize_driver = new Serializer(this.pickSerializeDriver());
+        this.setSerializerDriver(driver);
 
         this.setAlgorithm();
 
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
+    }
+
+    /**
+     * set serializer driver
+     *
+     * @param driver
+     */
+    setSerializerDriver(driver?: any){
+        if(driver) {
+            if(! Base_encryptor.validateSerializerDriver(driver))
+                Base_encryptor.throwError('validateSerializerDriver');
+
+            this.serialize_driver = new Serializer(new driver);
+            this.options.serialize_mode = 'custom';
+        }else{
+            this.serialize_driver = new Serializer(this.pickSerializeDriver());
+        }
+    }
+
+    /**
+     * validateSerializerDriver
+     *
+     * @param driver
+     */
+    static validateSerializerDriver(driver: any){
+        try {
+            const custom_driver = new driver;
+            return Base_encryptor
+                .validateSerializerImplementsSerializerInterface(custom_driver)
+        }catch (e) {
+            Base_encryptor.throwError('validateSerializerDriver')
+        }
+    }
+
+    /**
+     * validateSerializerDriver
+     *
+     * @param driver
+     */
+    static validateSerializerImplementsSerializerInterface(driver: any){
+        return (typeof driver['serialize'] === 'function')
+                && (typeof driver['unSerialize'] === 'function')
     }
 
     /**

@@ -1,5 +1,6 @@
 import {Base_encryptor} from "./base_encryptor";
 import {EncryptorError} from "./lib/EncryptorError";
+import {Serializer} from "./lib/Serializer";
 
 // Cipher steps:
 // serialize
@@ -31,9 +32,10 @@ export class Encryptor extends Base_encryptor {
      * Return new Encryptor
      *
      * @param options {key: string, key_length?: number, random_bytes?: number = 8 }
+     * @param driver
      */
-    constructor(options) {
-        super(options);
+    constructor(options, driver?: Serializer) {
+        super(options, driver);
     }
 
     /**

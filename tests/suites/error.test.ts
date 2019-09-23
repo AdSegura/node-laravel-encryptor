@@ -7,7 +7,7 @@ const one_object = {foo: "bar"};
 
 export default function suite() {
 
-    it('should throw EncryptorError Error Type', done => {
+    it('should throw \'EncryptorError\' Error Type', done => {
         const encryptor = new Encryptor({key});
         try {
             encryptor
@@ -43,7 +43,7 @@ export default function suite() {
     });
 
 
-    it("should throw 'not valid Key' EncryptorError when cipher", done => {
+    it("should throw 'not valid Key' EncryptorError when key not valid", done => {
         const encryptor = new Encryptor({key: 'foobarbaz'});
 
         encryptor
@@ -56,7 +56,7 @@ export default function suite() {
             })
     });
 
-    it("should throw 'not valid algorithm' EncryptorError when cipher", done => {
+    it("should throw 'not valid algorithm' EncryptorError when algorithm not valid", done => {
         try {
             new Encryptor({
                 key,
@@ -70,7 +70,7 @@ export default function suite() {
         }
     });
 
-    it("should throw 'not valid Json' EncryptorError when decipher", done => {
+    it("should throw 'not valid Json' EncryptorError when decipher not valid payload", done => {
         const encryptor = new Encryptor({
             key,
         });
@@ -85,7 +85,7 @@ export default function suite() {
         }
     });
 
-    it("should throw 'invalid MAC signature' EncryptorError when decipher", done => {
+    it("should throw 'invalid MAC signature' EncryptorError when deciphering tampered signature", done => {
         const encryptor = new Encryptor({key});
 
         const encrypted = encryptor.encryptSync(one_object);
@@ -108,7 +108,7 @@ export default function suite() {
         }
     });
 
-    it("should throw 'invalid Payload' EncryptorError when decipher", done => {
+    it("should throw 'invalid Payload' EncryptorError when decipher cannot validate payload", done => {
         const encryptor = new Encryptor({key});
 
         const encrypted = encryptor.encryptSync(one_object);
@@ -129,7 +129,7 @@ export default function suite() {
         }
     });
 
-    it("should throw 'invalid iv length' EncryptorError when decipher", done => {
+    it("should throw 'invalid iv length' EncryptorError when deciphering with invalid IV", done => {
         const encryptor = new Encryptor({key});
 
         const encrypted = encryptor.encryptSync(one_object);
@@ -152,13 +152,28 @@ export default function suite() {
         }
     });
 
-    it('should throw unknown Serialize EncryptorError Error when options.serialize_mode != json/php ', done => {
-        try {
-            new Encryptor({key, serialize_mode: 'foo'});
-        } catch (e) {
-            expect(e.name).equal('EncryptorError');
-            expect(e.message).equal('Serializer Encryptor Class unknown option foo serialize_mode');
-            done();
-        }
+    it('should throw \'validateSerializerDriver\' EncryptorError when custom serializer driver not implements Serializer interface',
+            done => {
+                const badSerializerDriver =
+                    module.exports =
+                        class badSerializerDriver{serialize(){}};
+                try {
+                    new Encryptor({key}, badSerializerDriver);
+                }catch (e) {
+                    expect(e.name).equal('EncryptorError');
+                    expect(e.message).equal('validateSerializerDriver');
+                    done()
+                }
+    });
+
+    it('should throw \'Serializer Encryptor Class unknown option\' EncryptorError when options.serialize_mode != json/php ',
+            done => {
+                try {
+                    new Encryptor({key, serialize_mode: 'foo'});
+                } catch (e) {
+                    expect(e.name).equal('EncryptorError');
+                    expect(e.message).equal('Serializer Encryptor Class unknown option foo serialize_mode');
+                    done();
+                }
     });
 }

@@ -1,5 +1,3 @@
-import {PhpSerializer} from "../../src/serializers/phpSerializer";
-
 const {it} = require("mocha");
 const {expect} = require("chai");
 const {Encryptor} = require('../../dist');

@@ -1,6 +1,6 @@
 import {Serialize_Interface} from "../contracts/Serialize_Interface";
 
-export class JsonSerializer implements Serialize_Interface {
+export class MockSerializer {
 
     /**
      * Serialize
