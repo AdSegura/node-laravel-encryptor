@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AdSegura/node-laravel-encryptor.svg?branch=master)](https://travis-ci.org/AdSegura/node-laravel-encryptor)
+
 # node-laravel-encryptor
 
 NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.0 
