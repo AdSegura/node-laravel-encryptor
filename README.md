@@ -48,16 +48,28 @@ Encryptor let you chose between `php-serialize` npm package or `JSON` node nativ
 
 > If you use this module **without any Laravel Backend involve** you should use json mode, instance Encryptor class with `serialize_mode:'json'`.
 
-  
-#### Use php-serialize to serialize data (Laravel integration)
+Encryptor will serialize only if data to cipher is an object.
+
+You can ***force serialize*** if Encryptor class is using `serialize_mode:'php'` to be able to serialize data to send back to Laravel if needed
+
+##### Use php-serialize to serialize data (Laravel integration)
 ```js
 const encryptor  = new Encryptor({key});
 const encryptor1 = new Encryptor({key, serialize_mode: 'php'});
 ```
+encryptor and encryptor1 just do the same, initialize Encryptor class with serialize mode to `'php'`
 
 > Encryptor defaults serialize data with `php-serialize` driver to be compliant with Laravel 
 
-#### Use JSON to serialize data
+##### Force serialize only when `serialize_mode:'php'` 
+If data needs to be serialized but it's not an object (because Laravel is serializing everything) 
+you can force `Encryptor.encrypt()` to serialize data.
+```js
+const encryptor  = new Encryptor({key}); //serialize_mode = 'php'
+encryptor.encrypt('foo', true) //foo now is encrypted and serialized
+```   
+
+##### Use JSON to serialize data
 ```js
 const encryptor = new Encryptor({key, serialize_mode: 'json'});
 ```
