@@ -11,14 +11,20 @@ You can use it too as standalone module to encrypt and decrypt data with verifie
 If you use this module as standalone, AKA without Laravel
 backend involve in your scenarios you can use native `node JSON lib` to serialize
 the data before ciphering it.
- 
-# Install
+
+## Prerequisites
+* NodeJs `>=v8.16.1 (npm v6.4.1)`
+
+## Laravel Compatibility
+* Laravel `>=5.4.30`
+
+## Install
 ```sh
 $> npm i node-laravel-encryptor
 ```
 
-# Use 
-## Async mode
+## Use 
+### Async mode
 ```js
 const {Encryptor} = require('node-laravel-encryptor');
 
@@ -31,7 +37,7 @@ encryptor
     .then(enc => console.log(encryptor.decrypt(enc)));
 ```
 
-## Sync mode
+### Sync mode
 ```js
 const enc = encryptor.encryptSync({foo: 'bar'});
 
@@ -40,7 +46,7 @@ console.log(encryptor.decrypt(enc));
 
 Decrypt is always in sync mode.
 
-### Serialize `<php>`|`<json>`
+## Serialize `<php>`|`<json>`
 
 Encryptor let you chose between `php-serialize` npm package or `JSON` node native implementation to serialize the data.
 
@@ -74,7 +80,7 @@ encryptor.encrypt('foo', true) //foo now is encrypted and serialized
 const encryptor = new Encryptor({key, serialize_mode: 'json'});
 ```
 
-# Encryptor Class 
+## Encryptor Class 
 #### Constructor
 * arguments:
  * options `<object>` {key, key_length} 
@@ -84,15 +90,15 @@ const encryptor = new Encryptor({key, serialize_mode: 'json'});
 
 if no `key_length` is given default is 64.
 
-## Methods
-### encrypt(data, force_serialize)
+### Methods
+#### encrypt(data, force_serialize)
 * arguments:
     * data: `<string>|<object>|<number>`
     * force_serialize: `<boolean>` [optional] 
 * return `<string>` base64
 * throw EncryptorError
 
-### decrypt(data)
+#### decrypt(data)
 * arguments:
     * data: `<string>|<object>|<number>`
 * return `<string>|<object>`
@@ -101,20 +107,20 @@ if no `key_length` is given default is 64.
 
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
-### Static generateRandomKey()
+#### Static generateRandomKey()
 * arguments:
     * length: `<number>` [optional], default 32   
 * return `<string>` base64
 * throw EncryptorError
 
-### Static static_decipher(key, data)
+#### Static static_decipher(key, data)
 * arguments:
     * key:  `<string>` base64 encoded key
     * data: `<string>`|`<object>`|`<number>`
 * return `<string>` base64
 * throw EncryptorError
 
-### Static static_cipher(key, data, [cb])
+#### Static static_cipher(key, data, [cb])
 * arguments:
     * key:  `<string>` base64 encoded key
     * data: `<string>`|`<object>`|`<number>`
@@ -122,7 +128,7 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 * return `<string>` base64
 * throw EncryptorError
 
-# Tests
+## Tests
 
 ```sh
 $> npm run test
@@ -140,50 +146,55 @@ To be able to run PHP test you must have installed:
 ```sh
 $> npm run test
 
-   Testing node Laravel Encryptor
-     Test Encryptor Cipher/Decipher serialize_mode: Native JSON
-       ✓ should cipher and decipher text
-       ✓ should cipher and decipher object
-       ✓ should cipher and decipher with no key_length defined
-       ✓ should cipher and decipher a number
-       ✓ should cipher and decipher Sync Mode
-     Test Encryptor Cipher/Decipher serialize_mode: PHP Serialize
-       ✓ should cipher and decipher text
-       ✓ should cipher and decipher object
-       ✓ should set serialized_mode to php-serialized if no serialize_mode given
-       ✓ should force serialize data input when serializer driver is php-serialized and data is not an object
-       ✓ should cipher and decipher with no key_length defined
-       ✓ should cipher and decipher a number
-       ✓ should cipher and decipher Sync Mode
-     Test Encryptor static methods
-       ✓ should generate a valid App key
-       ✓ should Cipher/deCipher correctly using static Encryptor methods
-       ✓ should Cipher correctly using static Encryptor method with callback function
-     Test Encryptor Class Errors
-       ✓ should throw EncryptorError Error Type
-       ✓ should throw 'encrypt no data given' EncryptorError when data to encrypt is null
-       ✓ should throw 'decrypt no data given' EncryptorError when data to decrypt is null
-       ✓ should throw 'not valid Key' EncryptorError when cipher
-       ✓ should throw 'not valid algorithm' EncryptorError when cipher
-       ✓ should throw 'not valid Json' EncryptorError when decipher
-       ✓ should throw 'invalid MAC signature' EncryptorError when decipher
-       ✓ should throw 'invalid Payload' EncryptorError when decipher
-       ✓ should throw 'invalid iv length' EncryptorError when decipher
-       ✓ should throw unknown Serialize EncryptorError Error when options.serialize_mode != json/php 
-     Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
-       ✓ should decipher data at Laravel correctly with serialize_mode php (64ms)
-       ✓ should decipher from Laravel correctly with serialize_mode php (57ms)
-       ✓ should decipher data, Sync Mode, at Laravel correctly with serialize_mode php (56ms)
-     Test integration with Express cookie
-       ✓ should create one request to Express aSync Mode, receive cookie and decipher (39ms)
-       ✓ should create one request to Express Sync Mode, receive cookie and decipher
- 
- 
-   30 passing (296ms)
+  Testing node Laravel Encryptor
+    Test Encryptor Cipher/Decipher serialize_mode: Native JSON
+      ✓ should cipher and decipher text
+      ✓ should cipher and decipher object
+      ✓ should cipher and decipher with no key_length defined
+      ✓ should cipher and decipher a number
+      ✓ should cipher and decipher Sync Mode
+    Test Encryptor Cipher/Decipher serialize_mode: PHP Serialize
+      ✓ should cipher and decipher text
+      ✓ should cipher and decipher object
+      ✓ should set serialized_mode to php-serialized if no serialize_mode given
+      ✓ should force serialize data input when serializer driver is php-serialized and data is not an object
+      ✓ should cipher and decipher with no key_length defined
+      ✓ should cipher and decipher a number
+      ✓ should cipher and decipher Sync Mode
+    Test Encryptor static methods
+      ✓ should generate a valid App key
+      ✓ should Cipher/deCipher correctly using static Encryptor methods
+      ✓ should Cipher correctly using static Encryptor method with callback function
+    Test Encryptor Class Errors
+      ✓ should throw 'EncryptorError' Error Type
+      ✓ should throw 'encrypt no data given' EncryptorError when data to encrypt is null
+      ✓ should throw 'decrypt no data given' EncryptorError when data to decrypt is null
+      ✓ should throw 'not valid Key' EncryptorError when key not valid
+      ✓ should throw 'no app key given' EncryptorError when null options
+      ✓ should throw 'not valid algorithm' EncryptorError when algorithm not valid
+      ✓ should throw 'not valid Json' EncryptorError when decipher not valid payload
+      ✓ should throw 'invalid MAC signature' EncryptorError when deciphering tampered signature
+      ✓ should throw 'invalid Payload' EncryptorError when decipher cannot validate payload
+      ✓ should throw 'invalid iv length' EncryptorError when deciphering with invalid IV
+      ✓ should throw 'validateSerializerDriver' EncryptorError when custom serializer driver not implements Serializer interface
+      ✓ should throw 'Serializer Encryptor Class unknown option' EncryptorError when options.serialize_mode != json/php 
+    Test Encryptor Class Serialize driver injection
+      ✓ should inject custom serializer driver in constructor
+      ✓ should inject custom serializer driver at runtime
+    Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
+      ✓ should decipher data at Laravel correctly with serialize_mode php (60ms)
+      ✓ should decipher from Laravel correctly with serialize_mode php (55ms)
+      ✓ should decipher data, Sync Mode, at Laravel correctly with serialize_mode php (54ms)
+    Test integration with Express cookie
+      ✓ should create one request to Express aSync Mode, receive cookie and decipher (43ms)
+      ✓ should create one request to Express Sync Mode, receive cookie and decipher
+
+
+  34 passing (265ms)
 
 ```
 
-# Artillery test
+### Artillery test
 
 In order to run Artillery integration test and stress test with aSync|Sync mode we have 
 
@@ -192,9 +203,9 @@ to [install artillery](https://artillery.io/docs/getting-started/) and artillery
 ```bash
 $> npm install -g artillery artillery-plugin-expect
 ```
-## Run Artillery expect test
+#### Run Artillery expect test
 
-#### start server running in async mode
+##### start server running in async mode
 ```bash
 $> npm run artillery_server_async
 ```
@@ -222,7 +233,7 @@ Summary report @ 11:28:45(+0200) 2019-09-21
     200: 1100
 ```
 
-#### start server running in sync mode
+##### start server running in sync mode
 ```bash
 $> npm run artillery_server_sync
 ```
@@ -250,24 +261,24 @@ Summary report @ 11:31:09(+0200) 2019-09-21
     200: 1100
 ```
 
-## Run Artillery stress test
+### Run Artillery stress test
 
-#### start server running in async mode
+##### start server running in async mode
 ```bash
 $> npm run artillery_server_async
 ```
 
-#### start server running in sync mode
+##### start server running in sync mode
 ```bash
 $> npm run artillery_server_sync
 ```
 
-#### run test
+##### run test
 ```bash
 $> npm run artillery
 ```
 
-#### Async Mode
+##### Async Mode
 ```sh
 All virtual users finished
 Summary report @ 11:20:34(+0200) 2019-09-21
@@ -287,7 +298,7 @@ Summary report @ 11:20:34(+0200) 2019-09-21
     200: 4220
 ```
 
-#### Sync Mode
+##### Sync Mode
 ```sh
 All virtual users finished
 Summary report @ 11:15:31(+0200) 2019-09-21
@@ -307,7 +318,7 @@ Summary report @ 11:15:31(+0200) 2019-09-21
     200: 4220
 ```
 
-### [Dont block the event loop](https://nodejs.org/en/docs/guides/dont-block-the-event-loop/)
+#### [Dont block the event loop](https://nodejs.org/en/docs/guides/dont-block-the-event-loop/)
 >Blocking the Event Loop: Node core modules
 > 
 > Several Node core modules have synchronous expensive APIs, including:
@@ -325,7 +336,7 @@ Summary report @ 11:15:31(+0200) 2019-09-21
 >          crypto.randomBytes (synchronous version)
  
 
-## Laravel Encrypter format:
+### Laravel Encrypter format:
 
 Laravel only allows `AES-128-CBC` `AES-256-CBC`.
 If no algorithm is defined default is `AES-256-CBC`
@@ -337,12 +348,12 @@ If no algorithm is defined default is `AES-256-CBC`
   "mac":  "Hash HMAC"
 }
 ```
-## Dependencies
+### Dependencies
 * [php-serialize](https://github.com/steelbrain/php-serialize#readme)
 
-## Contributing
+### Contributing
 Pull requests are welcome!
 
-## License
+### License
 [MIT](https://choosealicense.com/licenses/mit/)
 

@@ -63,13 +63,23 @@ export class Base_encryptor {
 
         this.options = Object.assign({}, {serialize_mode: this.default_serialize_mode}, options);
 
-        this.secret = Buffer.from(this.options.key, 'base64');
-
         this.setSerializerDriver(driver);
 
         this.setAlgorithm();
 
+        this.secret = Base_encryptor.prepareAppKey(this.options.key);
+
         this.random_bytes = this.options.random_bytes ? this.options.random_bytes : this.random_bytes;
+    }
+
+    /**
+     * prepareAppKey
+     */
+    static prepareAppKey(key: string): Buffer{
+        if(! key)
+            Base_encryptor.throwError('no app key given');
+
+       return Buffer.from(key, 'base64');
     }
 
     /**

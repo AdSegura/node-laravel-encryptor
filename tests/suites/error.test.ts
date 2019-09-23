@@ -56,6 +56,16 @@ export default function suite() {
             })
     });
 
+    it("should throw 'no app key given' EncryptorError when null options", done => {
+        try {
+            new Encryptor();
+        }catch (e) {
+            expect(e.name).equal('EncryptorError');
+            expect(e.message).equal('no app key given');
+            done()
+        }
+    });
+
     it("should throw 'not valid algorithm' EncryptorError when algorithm not valid", done => {
         try {
             new Encryptor({
