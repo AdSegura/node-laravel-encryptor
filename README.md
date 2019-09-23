@@ -46,9 +46,12 @@ console.log(encryptor.decrypt(enc));
 
 Decrypt is always in sync mode.
 
-## Serialize `<php>`|`<json>`
+## Serialize `<php>`|`<json>`|`<custom>`
 
-Encryptor let you chose between `php-serialize` npm package or `JSON` node native implementation to serialize the data.
+Encryptor let you chose between `php-serialize` npm package or `JSON` node native implementation to serialize the data out of the box.
+
+If you need to use other serialize library, like `mspack` or any other custom lib, Encryptor let you inject, at the constructor or at runtime with 
+`setSerializerDriver(your_lib)`, your custom Serializer Class. 
 
 > If you use this module with the intend to be able **to read and write ciphered data to/from Laravel** you should instance Encryptor class without any `serialize_mode` option, just the defaults.
 
@@ -80,32 +83,57 @@ encryptor.encrypt('foo', true) //foo now is encrypted and serialized
 const encryptor = new Encryptor({key, serialize_mode: 'json'});
 ```
 
+#### Write your custom Serializer
+#### Prerequisites
+* adhere to Serializer Interface contract
+
+Your custom Serializer must implement this two methods:
+
+```ts
+export interface Serialize_Interface {
+     serialize(data: any): string;
+     unSerialize(data: string): any;
+}
+``` 
+
 ## Encryptor Class 
 #### Constructor
 * arguments:
- * options `<object>` {key, key_length} 
-    * key: `<string>` APP_KEY without `base64:` 
-    * key_length: `<number>` [optional] [default] `<64>` values 32|64 for aes-[128]-cbc aes-[256]-cbc
-    * serialize_mode: `<string>` [optional] [default] `<php>` values `<php>`|`<json>`
-
-if no `key_length` is given default is 64.
+    * options: `<object>` {key, key_length} 
+        * key: `<string>` APP_KEY without `base64:` 
+        * key_length: `<number>` [optional] [default] `<64>` values 32|64 for aes-[128]-cbc aes-[256]-cbc
+        * serialize_mode: `<string>` [optional] [default] `<php>` values `<php>`|`<json>`
+    * serialize driver: `class to serialize` [optional] 
+* throw EncryptorError
 
 ### Methods
 #### encrypt(data, force_serialize)
 * arguments:
-    * data: `<string>|<object>|<number>`
+    * data: `<string>`|`<object>`|`<number>`
     * force_serialize: `<boolean>` [optional] 
-* return `<string>` base64
+* return Promise `<string>` base64
 * throw EncryptorError
 
 #### decrypt(data)
 * arguments:
-    * data: `<string>|<object>|<number>`
-* return `<string>|<object>`
+    * data: `<string>`|`<object>`|`<number>`
+* return `<string>`|`<object>`
 * throw EncryptorError
 
+#### encryptSync(data, force_serialize)
+* arguments:
+    * data: `<string>`|`<object>`|`<number>`
+    * force_serialize: `<boolean>` [optional] 
+* return `<string>` base64
+* throw EncryptorError
 
 Encrypt and Decrypt methods will serialize or unserialize data if needed.
+
+#### cipher.setSerializerDriver(custom_Serializer_lib)
+* arguments:
+    * custom_Serializer_lib: `object class serialize module` 
+* return `<void>`
+* throw EncryptorError
 
 #### Static generateRandomKey()
 * arguments:
@@ -130,12 +158,9 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 
 ## Tests
 
-```sh
-$> npm run test
-```
-To be able to run PHP test you must have installed:
+To be able to run `PHP test` you should install:
 
-* PHP >= 7.1.3
+* PHP `>= 7.1.3`
 * OpenSSL PHP Extension
 * Mbstring PHP Extension
 * Tokenizer PHP Extension
@@ -189,9 +214,7 @@ $> npm run test
       ✓ should create one request to Express aSync Mode, receive cookie and decipher (43ms)
       ✓ should create one request to Express Sync Mode, receive cookie and decipher
 
-
   34 passing (265ms)
-
 ```
 
 ### Artillery test
@@ -336,7 +359,7 @@ Summary report @ 11:15:31(+0200) 2019-09-21
 >          crypto.randomBytes (synchronous version)
  
 
-### Laravel Encrypter format:
+#### Laravel Encrypter format:
 
 Laravel only allows `AES-128-CBC` `AES-256-CBC`.
 If no algorithm is defined default is `AES-256-CBC`
@@ -345,7 +368,7 @@ If no algorithm is defined default is `AES-256-CBC`
 {
   "iv":  "iv in base64",
   "value":  "encrypted data",
-  "mac":  "Hash HMAC"
+  "mac":  "Hash HMAC signature"
 }
 ```
 ### Dependencies
