@@ -8,20 +8,47 @@ export class JsonSerializer implements Serialize_Interface {
      * @param data
      */
     serialize(data: any): string {
-        return JSON.stringify(data)
+        if(typeof data === 'object')
+            return 'j:' + JSON.stringify(data);
+
+        return String(data);
     }
 
     /**
      * Unserialize
      *  if cannot unserialize return data untouched
      *
-     * @param data
+     * @param str
      */
-    unSerialize(data: any):any {
-        try {
-            return JSON.parse(data)
-        } catch (e) {
-            return data;
+    unSerialize(str: string):any {
+        if (typeof str !== 'string') return undefined;
+
+        if(JsonSerializer.isJson(str)){
+          return JsonSerializer.parseJson(str);
+        } else {
+            return str;
         }
+    }
+
+    /**
+     * Parse JSON
+     * @param str
+     */
+    static parseJson(str: string): any{
+        try {
+            return JSON.parse(str.slice(2))
+        } catch (err) {
+            return undefined;
+        }
+    }
+
+    /**
+     * Is Json, a la expressJs,
+     *  if str is 'j:{"foo": "bar"}' if JSON
+     *
+     * @param str
+     */
+    static isJson(str: string): any {
+        return str.substr(0, 2) === 'j:'
     }
 }

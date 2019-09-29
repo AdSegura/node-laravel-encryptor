@@ -14,7 +14,7 @@ export class ExpressServer {
     private cookieMiddleware: (req, res, next) => void;
     private host: any;
 
-    constructor(private options: any){
+    constructor(private options: any) {
 
         this.express = new express();
 
@@ -27,14 +27,14 @@ export class ExpressServer {
         this.cookie_opt = this.cookie_params(this.options.cookie_opt);
         this.server_id = this.options.server_id;
 
-        if(options.async) {
-            if(! options.artillery)
+        if (options.async) {
+            if (!options.artillery)
                 this.cookieMiddleware = this.cookieAsync(options.cookie, this.server_id);
             else
                 this.cookieMiddleware = this.stupidMiddlewareAsync();
 
         } else {
-            if(! options.artillery)
+            if (!options.artillery)
                 this.cookieMiddleware = this.cookieSync(options.cookie, this.server_id);
             else
                 this.cookieMiddleware = this.stupidMiddlewareSync();
@@ -43,18 +43,18 @@ export class ExpressServer {
         this.cipher = new Encryptor(this.options);
     }
 
-    cookieSync(cookieName: string, data: any){
+    cookieSync(cookieName: string, data: any) {
         return (req, res, next) => {
             try {
                 const enc = this.cipher.encryptSync(data);
                 return this.response(cookieName, res, next)(enc)
-            } catch(e){
+            } catch (e) {
                 return this.errorAndNext(next)(e);
             }
         }
     }
 
-    cookieAsync(cookieName: string, data: any){
+    cookieAsync(cookieName: string, data: any) {
         return (req, res, next) => {
             this.cipher
                 .encrypt(data)
@@ -63,18 +63,18 @@ export class ExpressServer {
         }
     }
 
-    stupidMiddlewareSync(){
+    stupidMiddlewareSync() {
         return (req, res, next) => {
             try {
                 res.enc = this.cipher.encryptSync(req.query.id);
                 next();
-            } catch(e){
+            } catch (e) {
                 return this.errorAndNext(next)(e);
             }
         };
     }
 
-    stupidMiddlewareAsync(){
+    stupidMiddlewareAsync() {
         return (req, res, next) => {
             this.cipher
                 .encrypt(req.query.id)
@@ -111,31 +111,6 @@ export class ExpressServer {
         }
     }
 
-    serverId(){
-        return this.server_id;
-    }
-
-    /**
-     * default cookie params
-     *
-     * @param opt
-     */
-    private cookie_params(opt?: any) {
-
-        const base = {
-            domain: 'localhost',
-            httpOnly: true,
-            path: '/',
-            secure: true,
-            signed: false,
-            sameSite: 'Lax',
-            //maxAge: (new Date(Date.now() + 60 * 60 * 1000)).getMilliseconds(),
-            expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        };
-
-        return Object.assign({}, base, opt);
-    };
-
     /**
      * Log Error and Next
      * @param next
@@ -147,14 +122,16 @@ export class ExpressServer {
         }
     }
 
-    private decipherCookieMiddleware(){
+    private decipherCookieMiddleware() {
         return (req, res, next) => {
-            if(req.cookies['superdope']){
+            if (req.cookies['superdope']) {
                 console.log('decipherCookieMiddleware')
                 //console.log(req.headers)
-               const foo =  cookie.parse(req.headers.cookie, {decode: (data) => {
-                       return this.cipher.decrypt(decodeURIComponent(data), false)
-                    }})
+                const foo = cookie.parse(req.headers.cookie, {
+                    decode: (data) => {
+                        return this.cipher.decrypt(decodeURIComponent(data), false)
+                    }
+                });
 
                 console.log(foo)
             }
@@ -162,35 +139,44 @@ export class ExpressServer {
         }
     }
 
-    listen(port: number, cb?: any): any{
-            this.express.use(cookieParser(null, {decode: (data) => {
-                    return this.cipher.decrypt(decodeURIComponent(data), false)
-                }}));
-            this.express.use(this.cookieMiddleware);
-            //this.express.use(this.decipherCookieMiddleware());
+    listen(port: number, cb?: any): any {
 
-            this.express.use(this.logErrors);
-            this.express.use(this.clientErrorHandler);
-            this.express.use(this.errorHandler);
+        //crypto cookie
+        this.express.use(cookieParser(null, {
+            decode: (data) => {
+                return this.cipher.decrypt(decodeURIComponent(data), false);
+            },
 
-            this.api();
+            encode: (data) => {
+                return encodeURIComponent(this.cipher.encryptSync(data));
+            }
+        }));
 
-            this.httpServer = http.createServer(this.express);
-            this.server = this.httpServer.listen(port, cb);
+        this.express.use(this.cookieMiddleware);
+        //this.express.use(this.decipherCookieMiddleware());
 
-            if(!cb) return this.server
+        this.express.use(this.logErrors);
+        this.express.use(this.clientErrorHandler);
+        this.express.use(this.errorHandler);
+
+        this.api();
+
+        this.httpServer = http.createServer(this.express);
+        this.server = this.httpServer.listen(port, cb);
+
+        if (!cb) return this.server
     }
 
-    address(){
+    address() {
         return false;
     }
 
-    close(cb?: any){
+    close(cb?: any) {
         this.server.close(cb);
     }
 
 
-    api(){
+    api() {
         this.express.get(
             '/',
             (req, res, next) => this.getRoot(req, res, next),
@@ -216,6 +202,7 @@ export class ExpressServer {
         res.cookie_cryp('superdope', {foo: 1111}, res);
         res.json({id: 1});
     }
+
     /**
      * Outputs a simple message to show that the server is running.
      *
@@ -226,7 +213,7 @@ export class ExpressServer {
     getRoot(req: any, res: any, next: any) {
         //res.json(res._headers['set-cookie'])
         //res.json(res.getHeaders()['set-cookie'])
-        if(! req.query.id) return res.send('error');
+        if (!req.query.id) return res.send('error');
         res.json({id: req.query.id, encrypted: res.enc});
     }
 
@@ -234,27 +221,52 @@ export class ExpressServer {
         res.send('ok');
     }
 
-   getReadCookie(req: any, res: any, next: any) {
+    getReadCookie(req: any, res: any, next: any) {
         res.send(req.cookies['cryptocookie'])
     }
 
-    logErrors(err, req, res, next){
+    logErrors(err, req, res, next) {
         console.error(err.stack);
         next(err)
     }
 
-    clientErrorHandler(err, req, res, next){
+    clientErrorHandler(err, req, res, next) {
         if (req.xhr) {
-            res.status(500).send({ error: 'Something failed!' })
+            res.status(500).send({error: 'Something failed!'})
         } else {
             next(err)
         }
     }
 
-    errorHandler (err, req, res, next) {
-        if(process.env.NODE_ENV !== 'development')
-            return res.status(500).send({ error: 'Something failed!' });
+    errorHandler(err, req, res, next) {
+        if (process.env.NODE_ENV !== 'development')
+            return res.status(500).send({error: 'Something failed!'});
 
         res.status(500).send({error: err.stack})
     }
+
+    serverId() {
+        return this.server_id;
+    }
+
+    /**
+     * default cookie params
+     *
+     * @param opt
+     */
+    private cookie_params(opt?: any) {
+
+        const base = {
+            domain: 'localhost',
+            httpOnly: true,
+            path: '/',
+            secure: true,
+            signed: false,
+            sameSite: 'Lax',
+            //maxAge: (new Date(Date.now() + 60 * 60 * 1000)).getMilliseconds(),
+            expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        };
+
+        return Object.assign({}, base, opt);
+    };
 }

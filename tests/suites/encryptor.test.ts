@@ -58,7 +58,6 @@ export default function suite(serialize_mode: 'json'|'php') {
     });
 
     it('should cipher and decipher Sync Mode', done => {
-
         const encryptor = new Encryptor({key, serialize_mode});
         let enc = encryptor.encryptSync(text);
         let dec = encryptor.decrypt(enc);
