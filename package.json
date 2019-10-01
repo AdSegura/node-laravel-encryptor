@@ -5,7 +5,7 @@
     "npm": ">=6.4.1"
   },
   "module": "dist/index.js",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "node version Laravel Illuminate/Encryption/Encrypter.php",
   "main": "dist/index.js",
   "repository": {
@@ -26,6 +26,9 @@
     "artillery": "artillery run tests/artillery/artillery.yml",
     "artillery_server_async": "node --require ts-node/register tests/express/start-server.ts 1",
     "artillery_server_sync": "node --require ts-node/register tests/express/start-server.ts"
+  },
+  "bin":{
+    "encryptor": "bin/encryptor.js"
   },
   "author": "Adolfo Segura Hall",
   "license": "MIT",

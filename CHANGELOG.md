@@ -1,3 +1,6 @@
+# v2.0.4 
+* Encryptor npm binary  
+
 # v2.0.3 
 * `JsonSerializer.serialize` now stringify an object 
 a la ExpressJS cookie json serializer style, 

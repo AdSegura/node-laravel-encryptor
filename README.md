@@ -175,6 +175,80 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 * return `<string>` base64
 * throw EncryptorError
 
+#### Binary node_modules/.bin/encryptor
+```bash
+➜ encryptor      
+Usage
+  encryptor --gen
+  encryptor --enc --key <key> --value <value> [--serialize_mode json|php]
+  encryptor --dec --key <key> --value <value> [--serialize_mode json|php]
+```
+
+##### Generate cipher key
+```bash
+➜ encryptor --gen              
+qS+rK37YXXCYHXUhYaQtFGE+RMRQHiolxTilCre4/xQ=
+```
+
+##### Cipher
+```bash
+➜ encryptor --enc --key '5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=' \
+--value '{"foo": 1}' --serialize_mode json
+
+[OPTIONS]
+  [key] => 5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=
+  [value] => {"foo": 1}
+  [serialize_mode] => json
+
+[OUTPUT]
+  [ciphered] => eyJpdiI6Ill6UTJOakV5WWpOa1lXUTNNRFkyTnc9PSIsInZhbHVlIjoiYjVtTE9GeDZ2QWhIRkRrUjIwWGhlQT09IiwibWFjIjoiNjUzNDQzNzRmYzUwZmY4NTdjNGY4MDdiZjcwZmFjMzU1YzlmYzU4MTQ1NmQ2MmYxY2I3ZDdiYWIwYTFmZWExMiJ9
+```
+
+###### without serialize_mode (default php)
+```bash
+➜ encryptor --enc --key '5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=' \
+--value '{"foo": 1}'                      
+
+[OPTIONS]
+  [key] => 5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=
+  [value] => {"foo": 1}
+  [serialize_mode] => php
+
+[OUTPUT]
+  [ciphered] => eyJpdiI6Ik5EWmlaR0ZpTjJabFpEZGxOVFJrTmc9PSIsInZhbHVlIjoiYmo3RXJPMnNOamljamJITDMxZTVzcWxlUnpzN0RJdnZ4RUVpNTVvWlVKWT0iLCJtYWMiOiI2YjY4OGRiYjc0ZTg4NzlhMWYxMzI1MmZiOGY3Y2Q4YzM1MGEzMWUyZWE3ZWM3NjRmZTkyZTAwNGZkZGUyMmY0In0=
+```
+
+##### Decipher
+```bash
+➜ encryptor --dec --key '5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=' \
+ --value 'eyJpdiI6Ik1HWTFZbVkwWmpneE1EZGlZVEkyT1E9PSIsInZhbHVlIjoiTXNvZWQ3WXE2SlVuVkpkNTM5SHdiQT09IiwibWFjIjoiMTA5OTllYTQ3YjcwYTIxYWU1MmVkZDAyNzIwODg1ZGE0YWJhZWIwOWMyNjVmYmY1ZDI0NTJjMDRhYjE0ODg3YiJ9' \
+ --serialize_mode json
+
+[OPTIONS]
+  [key] => 5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=
+  [encrypted] => eyJpdiI6Ik1HWTFZbVkwWmpneE1EZGlZVEkyT1E9PSIsInZhbHVlIjoiTXNvZWQ3WXE2SlVuVkpkNTM5SHdiQT09IiwibWFjIjoiMTA5OTllYTQ3YjcwYTIxYWU1MmVkZDAyNzIwODg1ZGE0YWJhZWIwOWMyNjVmYmY1ZDI0NTJjMDRhYjE0ODg3YiJ9
+  [serialize_mode] => json
+
+[OUTPUT]
+  [deciphered] => {"foo":1}
+  [RAW deciphered] => j:{"foo":1}
+```
+
+###### without serialize_mode (default php)
+```bash
+➜ encryptor --dec --key '5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=' \
+ --value 'eyJpdiI6Ik5EWmlaR0ZpTjJabFpEZGxOVFJrTmc9PSIsInZhbHVlIjoiYmo3RXJPMnNOamljamJITDMxZTVzcWxlUnpzN0RJdnZ4RUVpNTVvWlVKWT0iLCJtYWMiOiI2YjY4OGRiYjc0ZTg4NzlhMWYxMzI1MmZiOGY3Y2Q4YzM1MGEzMWUyZWE3ZWM3NjRmZTkyZTAwNGZkZGUyMmY0In0='
+
+[OPTIONS]
+  [key] => 5mimovgZ4oxbEoktPRKpVlu8LUL6JZRJb1+Y5JzJkIc=
+  [encrypted] => eyJpdiI6Ik5EWmlaR0ZpTjJabFpEZGxOVFJrTmc9PSIsInZhbHVlIjoiYmo3RXJPMnNOamljamJITDMxZTVzcWxlUnpzN0RJdnZ4RUVpNTVvWlVKWT0iLCJtYWMiOiI2YjY4OGRiYjc0ZTg4NzlhMWYxMzI1MmZiOGY3Y2Q4YzM1MGEzMWUyZWE3ZWM3NjRmZTkyZTAwNGZkZGUyMmY0In0=
+  [serialize_mode] => php
+
+[OUTPUT]
+  [deciphered] => {"foo":1}
+  [RAW deciphered] => a:1:{s:3:"foo";i:1;}
+```
+
 ## Tests
 
 To be able to run `PHP test` you should install:
