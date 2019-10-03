@@ -1,11 +1,11 @@
-import {describe} from 'mocha';
+const {describe} = require('mocha');
 
-import enc_test from './suites/encryptor.test';
-import static_methods_test from './suites/encryptor.static.test';
-import error_test from './suites/error.test';
-import laravel from './suites/laravel.test';
-import integrator from './suites/express.test';
-import driver from './suites/serializer.test';
+const enc_test = require('./suites/encryptor.test');
+const static_methods_test = require('./suites/encryptor.static.test');
+const error_test = require('./suites/error.test');
+const laravel = require('./suites/laravel.test');
+const integrator = require('./suites/express.test');
+const driver = require('./suites/serializer.test');
 
 
 describe('Testing node Laravel Encryptor', function() {

@@ -4,18 +4,12 @@ const http = require('http');
 const {Encryptor} = require('../../dist');
 const cookie = require('cookie');
 
-export class ExpressServer {
-    private express: any;
-    private httpServer: any;
-    private server: any;
-    private cipher: any;
-    private cookie_opt: any;
-    protected server_id: any;
-    private cookieMiddleware: (req, res, next) => void;
-    private host: any;
 
-    constructor(private options: any) {
+exports.ExpressServer = class ExpressServer {
 
+    constructor(options) {
+
+        this.options = options;
         this.express = new express();
 
         (() => {
@@ -43,7 +37,7 @@ export class ExpressServer {
         this.cipher = new Encryptor(this.options);
     }
 
-    cookieSync(cookieName: string, data: any) {
+    cookieSync(cookieName, data) {
         return (req, res, next) => {
             try {
                 const enc = this.cipher.encryptSync(data);
@@ -54,7 +48,7 @@ export class ExpressServer {
         }
     }
 
-    cookieAsync(cookieName: string, data: any) {
+    cookieAsync(cookieName, data) {
         return (req, res, next) => {
             this.cipher
                 .encrypt(data)
@@ -92,7 +86,7 @@ export class ExpressServer {
      * @param res
      * @param next
      */
-    private response(name, res, next) {
+    response(name, res, next) {
         return (enc) => {
             this.setCookie(name, res)(enc);
             next();
@@ -105,7 +99,7 @@ export class ExpressServer {
      * @param name
      * @param res
      */
-    private setCookie(name, res) {
+    setCookie(name, res) {
         return (payload) => {
             res.cookie(name, payload, this.cookie_opt);
         }
@@ -115,14 +109,14 @@ export class ExpressServer {
      * Log Error and Next
      * @param next
      */
-    private errorAndNext(next) {
+     errorAndNext(next) {
         return (error) => {
             console.error(error);
             next(error);
         }
     }
 
-    private decipherCookieMiddleware() {
+     decipherCookieMiddleware() {
         return (req, res, next) => {
             if (req.cookies['superdope']) {
                 console.log('decipherCookieMiddleware')
@@ -139,7 +133,7 @@ export class ExpressServer {
         }
     }
 
-    listen(port: number, cb?: any): any {
+    listen(port, cb) {
 
         //crypto cookie
         this.express.use(cookieParser(null, {
@@ -171,7 +165,7 @@ export class ExpressServer {
         return false;
     }
 
-    close(cb?: any) {
+    close(cb) {
         this.server.close(cb);
     }
 
@@ -198,7 +192,7 @@ export class ExpressServer {
         );
     }
 
-    mid(req: any, res: any, next: any) {
+    mid(req, res, next) {
         res.cookie_cryp('superdope', {foo: 1111}, res);
         res.json({id: 1});
     }
@@ -210,18 +204,18 @@ export class ExpressServer {
      * @param {any} res
      * @param next
      */
-    getRoot(req: any, res: any, next: any) {
+    getRoot(req, res, next) {
         //res.json(res._headers['set-cookie'])
         //res.json(res.getHeaders()['set-cookie'])
         if (!req.query.id) return res.send('error');
         res.json({id: req.query.id, encrypted: res.enc});
     }
 
-    getIntegrator(req: any, res: any, next: any) {
+    getIntegrator(req, res, next) {
         res.send('ok');
     }
 
-    getReadCookie(req: any, res: any, next: any) {
+    getReadCookie(req, res, next) {
         res.send(req.cookies['cryptocookie'])
     }
 
@@ -254,7 +248,7 @@ export class ExpressServer {
      *
      * @param opt
      */
-    private cookie_params(opt?: any) {
+     cookie_params(opt) {
 
         const base = {
             domain: 'localhost',

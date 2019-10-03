@@ -8,7 +8,7 @@ const decipher = (data) => {
     return cipher.decrypt(data);
 };
 
-export default function suite() {
+module.exports = function suite() {
 
     it('should set serialized_mode to php-serialized if no serialize_mode given', done => {
         const encryptor = new Encryptor({key});

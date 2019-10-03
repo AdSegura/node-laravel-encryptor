@@ -1,4 +1,4 @@
-import {ExpressServer} from "./express-server";
+const {ExpressServer} = require("./express-server");
 const key = 'c0gDOf2wqPLyJ8eZsmEcf8XPRyu24cSPcEZfGs12v78=';
 
 let aSync = false;
@@ -8,7 +8,7 @@ if(process.argv[2]) aSync = true;
 if(process.argv[3]) artillery = false;
 
 class StartServer {
-    static start(options, cb?: any){
+    static start(options, cb){
         const ex = new ExpressServer(options);
         return ex.listen(9999, cb)
     }

@@ -5,7 +5,7 @@ const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};
 
-export default function suite(serialize_mode: 'json'|'php') {
+module.exports = function suite(serialize_mode) {
     const cipher = new Encryptor({key, serialize_mode});
     const decipher = (data) => {
         return cipher.decrypt(data);

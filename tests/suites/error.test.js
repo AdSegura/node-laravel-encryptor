@@ -5,7 +5,7 @@ const key = 'LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o=';
 const text = 'resistance is futile';
 const one_object = {foo: "bar"};
 
-export default function suite() {
+module.exports = function suite() {
 
     it('should throw \'EncryptorError\' Error Type', done => {
         const encryptor = new Encryptor({key});

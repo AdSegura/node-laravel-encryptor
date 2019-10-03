@@ -29,7 +29,7 @@ const validArgs = (args) => {
 switch (args[0]) {
 
     case '--gen':{
-        console.log(Encryptor.generateRandomKey());
+        console.log('\x1b[33m%s\x1b[0m', Encryptor.generateRandomKey());
         break;
     }
 
@@ -47,14 +47,14 @@ switch (args[0]) {
         const cipher = new Encryptor({key, serialize_mode});
 
         console.log();
-        console.group('[OPTIONS]');
-        console.log('[key] => ' + key);
-        console.log('[value] => ' + valuePreJson);
-        console.log('[serialize_mode] => ' +  cipher.options.serialize_mode);
+        console.group('\x1b[34m%s\x1b[0m','[OPTIONS]');
+        console.log('\x1b[90m[key]\x1b[0m => \x1b[2m' + key + '\x1b[0m');
+        console.log('\x1b[90m[value]\x1b[0m => \x1b[2m' + valuePreJson + '\x1b[0m');
+        console.log('\x1b[90m[serialize_mode]\x1b[0m => \x1b[2m' +  cipher.options.serialize_mode + '\x1b[0m');
         console.groupEnd();
         console.log();
-        console.group('[OUTPUT]');
-        console.log('[ciphered] => ' +  cipher.encryptSync(value));
+        console.group('\x1b[93m%s\x1b[0m', '[OUTPUT]');
+        console.log('\x1b[2m[ciphered]\x1b[0m => ' +   '\x1b[33m' + cipher.encryptSync(value) + '\x1b[0m');
         console.groupEnd();
         console.log();
 
@@ -74,15 +74,15 @@ switch (args[0]) {
         }
 
         console.log();
-        console.group('[OPTIONS]');
-        console.log('[key] => ' + key);
-        console.log('[encrypted] => ' + value);
-        console.log('[serialize_mode] => ' +  cipher.options.serialize_mode);
+        console.group('\x1b[34m%s\x1b[0m', '[OPTIONS]');
+        console.log('\x1b[90m[key]\x1b[0m => \x1b[2m' + key + '\x1b[0m');
+        console.log('\x1b[90m[encrypted]\x1b[0m => \x1b[2m' + value + '\x1b[0m');
+        console.log('\x1b[90m[serialize_mode]\x1b[0m => \x1b[2m' +  cipher.options.serialize_mode + '\x1b[0m');
         console.groupEnd();
         console.log();
-        console.group('[OUTPUT]');
-        console.log('[deciphered] => ' +  decrypted);
-        console.log('[RAW deciphered] => ' +  cipher.getRawDecrypted());
+        console.group('\x1b[93m%s\x1b[0m', '[OUTPUT]');
+        console.log('\x1b[2m[deciphered]\x1b[0m => ' +  '\x1b[33m'  +  decrypted + '\x1b[0m');
+        console.log('\x1b[2m[RAW deciphered]\x1b[0m => ' +  '\x1b[33m'  + cipher.getRawDecrypted() + '\x1b[0m');
         console.groupEnd();
         console.log();
 

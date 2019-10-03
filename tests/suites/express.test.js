@@ -36,7 +36,7 @@ const decipher = (response) => {
     return encryptor.decrypt(decodeURIComponent(cookie.value));
 };
 
-export default function suite() {
+module.exports = function suite() {
     it('should create one request to Express aSync Mode, receive cookie and decipher', done => {
         options.async = true;
         const server = new ExpressServer(options);

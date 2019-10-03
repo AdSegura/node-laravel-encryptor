@@ -7,7 +7,7 @@ const one_object = {foo: "bar"};
 const php_crypt = 'php tests/php/crypt.php';
 const php_decrypt = 'php tests/php/decrypt.php';
 
-export default function suite() {
+module.exports = function suite() {
 
     it('should decipher data at Laravel correctly with serialize_mode php', done => {
         const encryptor = new Encryptor({

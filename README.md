@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/AdSegura/node-laravel-encryptor.svg?branch=master)](https://travis-ci.org/AdSegura/node-laravel-encryptor)
-
+[![npm version](https://badge.fury.io/js/node-laravel-encryptor.svg)](https://badge.fury.io/js/node-laravel-encryptor)
+[![node version](https://badgen.net/badge/node/%3E=8.10.0/green)](https://badgen.net/badge/node/%3E=8.10.0/green)
 # node-laravel-encryptor
 
 NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.0 
@@ -15,7 +16,7 @@ backend involve in your scenarios you can use native `node JSON lib` to serializ
 the data before ciphering it.
 
 ## Prerequisites
-* NodeJs `>=v8.16.1 (npm v6.4.1)`
+* NodeJs `>=v8.10.0 (npm v5.6.0)`
 
 ## Laravel Compatibility
 * Laravel `>=5.4.30`
@@ -435,24 +436,6 @@ Summary report @ 11:15:31(+0200) 2019-09-21
     200: 4220
 ```
 
-#### [Dont block the event loop](https://nodejs.org/en/docs/guides/dont-block-the-event-loop/)
->Blocking the Event Loop: Node core modules
-> 
-> Several Node core modules have synchronous expensive APIs, including:
->  
->      Encryption
->      Compression
->      File system
->      Child process
->  
->  These APIs are expensive, because they involve significant computation (encryption, compression), require I/O (file I/O), or potentially both (child process). These APIs are intended for scripting convenience, but are not intended for use in the server context. If you execute them on the Event Loop, they will take far longer to complete than a typical JavaScript instruction, blocking the Event Loop.
->  
->  ### In a server, you should not use the following synchronous APIs from these modules:
->  
->      Encryption:
->          crypto.randomBytes (synchronous version)
- 
-
 #### Laravel Encrypter format:
 
 Laravel only allows `AES-128-CBC` `AES-256-CBC`.
@@ -469,7 +452,7 @@ If no algorithm is defined default is `AES-256-CBC`
 * [php-serialize](https://github.com/steelbrain/php-serialize#readme)
 
 ### Contributing
-Pull requests are welcome!
+Pull requests are welcome.
 
 ### License
 [MIT](https://choosealicense.com/licenses/mit/)
