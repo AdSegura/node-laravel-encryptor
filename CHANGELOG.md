@@ -1,3 +1,6 @@
+# v2.0.5 
+* mocha tests no TS  
+
 # v2.0.4 
 * Encryptor npm binary  
 

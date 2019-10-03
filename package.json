@@ -5,7 +5,7 @@
     "npm": ">=6.4.1"
   },
   "module": "dist/index.js",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "node version Laravel Illuminate/Encryption/Encrypter.php",
   "main": "dist/index.js",
   "repository": {
@@ -27,7 +27,7 @@
     "artillery_server_async": "node tests/express/start-server.js 1",
     "artillery_server_sync": "node tests/express/start-server.js"
   },
-  "bin":{
+  "bin": {
     "encryptor": "bin/encryptor.js"
   },
   "author": "Adolfo Segura Hall",
@@ -42,7 +42,6 @@
     "cookie-parser": "^1.4.4",
     "express": "^4.17.1",
     "mocha": "^6.2.0",
-    "ts-node": "^8.4.1",
     "typescript": "^2.9.2",
     "uuid": "^3.3.3"
   }
