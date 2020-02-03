@@ -15,6 +15,9 @@ If you use this module as standalone, AKA without Laravel
 backend involve in your scenarios you can use native `node JSON lib` to serialize
 the data before ciphering it.
 
+## changes in version 3.0.*
+`options.key_length` now is `128|256`.
+
 ## Prerequisites
 * NodeJs `>=v8.10.0 (npm v5.6.0)`
 
