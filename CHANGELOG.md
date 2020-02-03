@@ -1,3 +1,8 @@
+# v3.0.1
+* [Bug](https://github.com/AdSegura/node-laravel-encryptor/issues/1) discovered by [LaserGoat](https://github.com/lasergoat) 
+* options.key_length now equal to 128/256 that means aes-128-cbc aes-256-cbc...
+* GenerateRandomKey function updated.
+* tests 
 # v2.0.5 
 * mocha tests no TS  
 
