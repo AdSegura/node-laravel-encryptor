@@ -11,9 +11,39 @@ module.exports = function suite(serialize_mode) {
         return cipher.decrypt(data);
     };
 
+    it(`should cipher and decipher aes-128-cbc`, done => {
+        const encryptor = new Encryptor({
+            key: Encryptor.generateRandomKey(128),
+            serialize_mode,
+            key_length: 128
+        });
+        encryptor
+            .encrypt(text)
+            .then(enc => {
+                const dec = encryptor.decrypt(enc);
+                expect(dec).equal(text);
+                done()
+            });
+    });
+
+    it(`should cipher and decipher aes-256-cbc`, done => {
+        const encryptor = new Encryptor({
+            key: Encryptor.generateRandomKey(256),
+            serialize_mode,
+            key_length: 256
+        });
+        encryptor
+            .encrypt(text)
+            .then(enc => {
+                const dec = encryptor.decrypt(enc);
+                expect(dec).equal(text);
+                done()
+            });
+    });
+
     it(`should cipher and decipher text`, done => {
         const encryptor = new Encryptor({
-            key, serialize_mode, key_length: 64
+            key, serialize_mode, key_length: 256
         });
         encryptor
             .encrypt(text)

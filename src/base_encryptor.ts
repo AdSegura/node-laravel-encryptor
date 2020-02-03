@@ -3,6 +3,9 @@ import {EncryptorError} from "./lib/EncryptorError";
 import {PhpSerializer} from "./serializers/phpSerializer";
 import {JsonSerializer} from "./serializers/jsonSerializer";
 import cryptTypes from "crypto";
+import {Encryptor} from "./Encryptor";
+const valid_key_lengths = [128, 256];
+const default_key_length = 256;
 
 let crypto;
 //Determining if crypto support is unavailable
@@ -24,16 +27,16 @@ export class Base_encryptor {
     protected readonly secret: any;
 
     /** key length */
-    protected key_length: number = 64;
+    protected key_length: number = default_key_length;
 
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
-    private readonly valid_key_lengths = [32, 64];
+    protected  valid_key_lengths =  valid_key_lengths;
 
     /** Bytes number crypto.randomBytes default 8 */
     protected random_bytes = 8;
 
-    /** Bytes number generateRandomKey default 32 */
-    private static readonly app_key_length = 32;
+    /** Bytes number generateRandomKey default aes-256-cbc */
+    private static readonly app_key_length = default_key_length;
 
     /** serialize driver */
     private serialize_driver: Serializer;
@@ -213,7 +216,7 @@ export class Base_encryptor {
             );
 
         this.algorithm = this.options.key_length ?
-            `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
+            `aes-${this.options.key_length}-cbc` : `aes-${this.key_length}-cbc`;
     }
 
     /**
@@ -536,8 +539,15 @@ export class Base_encryptor {
      */
     static generateRandomKey(length?: number): string {
         length = length ? length : Base_encryptor.app_key_length;
+
+        //laravel supports 128/256
+        if(valid_key_lengths.indexOf(length) < 0){
+            console.error('valid options are: ', valid_key_lengths);
+            return;
+        }
+
         try{
-            const buf = crypto.randomBytes(length);
+            const buf = crypto.randomBytes(length/8);
             return buf.toString('base64');
         }catch (e) {
             Base_encryptor.throwError(e.message);

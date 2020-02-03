@@ -4,6 +4,8 @@ const Serializer_1 = require("./lib/Serializer");
 const EncryptorError_1 = require("./lib/EncryptorError");
 const phpSerializer_1 = require("./serializers/phpSerializer");
 const jsonSerializer_1 = require("./serializers/jsonSerializer");
+const valid_key_lengths = [128, 256];
+const default_key_length = 256;
 let crypto;
 try {
     crypto = require('crypto');
@@ -13,8 +15,8 @@ catch (e) {
 }
 class Base_encryptor {
     constructor(options, driver) {
-        this.key_length = 64;
-        this.valid_key_lengths = [32, 64];
+        this.key_length = default_key_length;
+        this.valid_key_lengths = valid_key_lengths;
         this.random_bytes = 8;
         this.default_serialize_mode = 'php';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
@@ -103,7 +105,7 @@ class Base_encryptor {
         if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
             Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         this.algorithm = this.options.key_length ?
-            `aes-${this.options.key_length * 4}-cbc` : `aes-${this.key_length * 4}-cbc`;
+            `aes-${this.options.key_length}-cbc` : `aes-${this.key_length}-cbc`;
     }
     prepareDataToCipher(data, force_serialize) {
         if (force_serialize === true && this.serialize_driver.getDriverName() === 'PhpSerializer') {
@@ -257,8 +259,12 @@ class Base_encryptor {
     }
     static generateRandomKey(length) {
         length = length ? length : Base_encryptor.app_key_length;
+        if (valid_key_lengths.indexOf(length) < 0) {
+            console.error('valid options are: ', valid_key_lengths);
+            return;
+        }
         try {
-            const buf = crypto.randomBytes(length);
+            const buf = crypto.randomBytes(length / 8);
             return buf.toString('base64');
         }
         catch (e) {
@@ -269,5 +275,5 @@ class Base_encryptor {
         return this.raw_decrypted;
     }
 }
-Base_encryptor.app_key_length = 32;
+Base_encryptor.app_key_length = default_key_length;
 exports.Base_encryptor = Base_encryptor;

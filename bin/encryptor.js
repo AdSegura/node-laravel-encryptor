@@ -29,7 +29,9 @@ const validArgs = (args) => {
 switch (args[0]) {
 
     case '--gen':{
-        console.log('\x1b[33m%s\x1b[0m', Encryptor.generateRandomKey());
+        let cbc = 256;
+        if(parseInt(args[1]) === 128) cbc = 128;
+        console.log('\x1b[33m%s\x1b[0m', Encryptor.generateRandomKey(cbc));
         break;
     }
 

@@ -104,7 +104,7 @@ export interface Serialize_Interface {
 * arguments:
     * options: `<object>` {key, key_length} 
         * key: `<string>` APP_KEY without `base64:` 
-        * key_length: `<number>` [optional] [default] `<64>` values 32|64 for aes-[128]-cbc aes-[256]-cbc
+        * key_length: `<number>` [optional] [default] `<256>` values 128|256 for aes-[128]-cbc aes-[256]-cbc
         * serialize_mode: `<string>` [optional] [default] `<php>` values `<php>`|`<json>`
     * serialize driver: `class to serialize` [optional] 
 * throw EncryptorError
@@ -155,7 +155,7 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 #### Static generateRandomKey()
 > Will generate valid App_key a la Laravel
 * arguments:
-    * length: `<number>` [optional], default 32   
+    * length: `<number>` [optional], default 256, if you use aes-128-cbc use 128   
 * return `<string>` base64
 * throw EncryptorError
 
@@ -180,15 +180,18 @@ Encrypt and Decrypt methods will serialize or unserialize data if needed.
 ```bash
 ➜ encryptor      
 Usage
-  encryptor --gen
+  encryptor --gen [128, 256]
   encryptor --enc --key <key> --value <value> [--serialize_mode json|php]
   encryptor --dec --key <key> --value <value> [--serialize_mode json|php]
 ```
 
 ##### Generate cipher key
 ```bash
-➜ encryptor --gen              
+➜ encryptor --gen 256             
 qS+rK37YXXCYHXUhYaQtFGE+RMRQHiolxTilCre4/xQ=
+
+➜ encryptor --gen 128             
+qc5plfoS13rfJeQ9LcqNtg==
 ```
 
 ##### Cipher
