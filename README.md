@@ -1,5 +1,4 @@
 [![Build Status](https://travis-ci.org/AdSegura/node-laravel-encryptor.svg?branch=master)](https://travis-ci.org/AdSegura/node-laravel-encryptor)
-[![npm version](https://badge.fury.io/js/node-laravel-encryptor.svg)](https://badge.fury.io/js/node-laravel-encryptor)
 [![node version](https://badgen.net/badge/node/%3E=8.10.0/green)](https://badgen.net/badge/node/%3E=8.10.0/green)
 # node-laravel-encryptor
 
