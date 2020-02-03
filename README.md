@@ -3,7 +3,7 @@
 [![node version](https://badgen.net/badge/node/%3E=8.10.0/green)](https://badgen.net/badge/node/%3E=8.10.0/green)
 # node-laravel-encryptor
 
-NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.0 
+NodeJS version of Laravel's Encrypter Class, tested 5.4.30 to 6.X
 [Illuminate/Encryption/Encrypter.php](https://github.com/laravel/framework/blob/ad18538cd39a139d7aeee16c13062c8a4347141d/src/Illuminate/Encryption/Encrypter.php)
 
 With this module you can create the encrypted payload for a cookie from Node Js
@@ -108,6 +108,10 @@ export interface Serialize_Interface {
         * serialize_mode: `<string>` [optional] [default] `<php>` values `<php>`|`<json>`
     * serialize driver: `class to serialize` [optional] 
 * throw EncryptorError
+
+##### options.key_length
+If you use aes-128-cbc value should be 128
+If you use aes-256-cbc value should be 256 or you can omit, it's a default value.
 
 ### Methods
 #### encrypt(data, force_serialize)
@@ -267,52 +271,6 @@ To be able to run `PHP test` you should install:
 
 ```sh
 $> npm run test
-
-  Testing node Laravel Encryptor
-    Test Encryptor Cipher/Decipher serialize_mode: Native JSON
-      ✓ should cipher and decipher text
-      ✓ should cipher and decipher object
-      ✓ should cipher and decipher with no key_length defined
-      ✓ should cipher and decipher a number
-      ✓ should cipher and decipher Sync Mode
-    Test Encryptor Cipher/Decipher serialize_mode: PHP Serialize
-      ✓ should cipher and decipher text
-      ✓ should cipher and decipher object
-      ✓ should cipher and decipher with no key_length defined
-      ✓ should cipher and decipher a number
-      ✓ should cipher and decipher Sync Mode
-    Test Encryptor static methods
-      ✓ should generate a valid App key
-      ✓ should Cipher/deCipher correctly using static Encryptor methods
-      ✓ should Cipher correctly using static Encryptor method with callback function
-    Test Encryptor Class Errors
-      ✓ should throw 'EncryptorError' Error Type
-      ✓ should throw 'encrypt no data given' EncryptorError when data to encrypt is null
-      ✓ should throw 'decrypt no data given' EncryptorError when data to decrypt is null
-      ✓ should throw 'not valid Key' EncryptorError when key not valid
-      ✓ should throw 'no app key given' EncryptorError when null options
-      ✓ should throw 'not valid algorithm' EncryptorError when algorithm not valid
-      ✓ should throw 'not valid Json' EncryptorError when decipher not valid payload
-      ✓ should throw 'invalid MAC signature' EncryptorError when deciphering tampered signature
-      ✓ should throw 'invalid Payload' EncryptorError when decipher cannot validate payload
-      ✓ should throw 'invalid iv length' EncryptorError when deciphering with invalid IV
-      ✓ should throw 'validateSerializerDriver' EncryptorError when custom serializer driver not implements Serializer interface
-      ✓ should throw 'Serializer Encryptor Class unknown option' EncryptorError when options.serialize_mode != json/php 
-    Test Encryptor Class Serialize driver injection
-      ✓ should set serialized_mode to php-serialized if no serialize_mode given
-      ✓ should force serialize data input when serializer driver is php-serialized and data is not an object
-      ✓ should inject custom serializer driver in constructor
-      ✓ should inject custom serializer driver at runtime
-      ✓ should use injected serializer driver to serialize/deserialize data
-    Test Encryptor compatibility with Laravel Illuminate/Encryption/Encrypter
-      ✓ should decipher data at Laravel correctly with serialize_mode php (60ms)
-      ✓ should decipher from Laravel correctly with serialize_mode php (56ms)
-      ✓ should decipher data, Sync Mode, at Laravel correctly with serialize_mode php (58ms)
-    Test integration with Express cookie
-      ✓ should create one request to Express aSync Mode, receive cookie and decipher (39ms)
-      ✓ should create one request to Express Sync Mode, receive cookie and decipher
-      
-  35 passing (296ms)
 ```
 
 ### Artillery test

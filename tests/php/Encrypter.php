@@ -1,5 +1,7 @@
 <?php
-
+/**
+    vendor/laravel/framework/src/Illuminate/Encryption/Encrypter.php
+*/
 class Encrypter
 {
     /**

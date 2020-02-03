@@ -14,6 +14,7 @@ module.exports = function suite(serialize_mode) {
     it(`should cipher and decipher aes-128-cbc`, done => {
         const encryptor = new Encryptor({
             key: Encryptor.generateRandomKey(128),
+            //key: 'RMqfmrA0aw0oQm0huX2MIA==',
             serialize_mode,
             key_length: 128
         });

@@ -7,7 +7,7 @@ const {Encryptor} = require('../dist');
 const args = process.argv.splice(2);
 
 const docs = [
-    {command: 'encryptor', option: '--gen', description: 'generate key'},
+    {command: 'encryptor', option: '--gen 128|256', description: 'generate key'},
     {command: 'encryptor', option: '--enc --key <key> --value <value> [--serialize_mode json|php]', description: 'cipher value'},
     {command: 'encryptor', option: '--dec --key <key> --value <value> [--serialize_mode json|php]', description: 'decipher value'}
 ];

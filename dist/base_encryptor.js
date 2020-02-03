@@ -4,8 +4,8 @@ const Serializer_1 = require("./lib/Serializer");
 const EncryptorError_1 = require("./lib/EncryptorError");
 const phpSerializer_1 = require("./serializers/phpSerializer");
 const jsonSerializer_1 = require("./serializers/jsonSerializer");
-const valid_key_lengths = [128, 256];
-const default_key_length = 256;
+const valid_aes = [128, 256];
+const default_aes = 256;
 let crypto;
 try {
     crypto = require('crypto');
@@ -15,8 +15,8 @@ catch (e) {
 }
 class Base_encryptor {
     constructor(options, driver) {
-        this.key_length = default_key_length;
-        this.valid_key_lengths = valid_key_lengths;
+        this.aes_mode = default_aes;
+        this.valid_aes_modes = valid_aes;
         this.random_bytes = 8;
         this.default_serialize_mode = 'php';
         this.options = Object.assign({}, { serialize_mode: this.default_serialize_mode }, options);
@@ -102,10 +102,10 @@ class Base_encryptor {
         }
     }
     setAlgorithm() {
-        if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
+        if (this.options.key_length && this.valid_aes_modes.indexOf(this.options.key_length) < 0)
             Base_encryptor.throwError('The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.');
         this.algorithm = this.options.key_length ?
-            `aes-${this.options.key_length}-cbc` : `aes-${this.key_length}-cbc`;
+            `aes-${this.options.key_length}-cbc` : `aes-${this.aes_mode}-cbc`;
     }
     prepareDataToCipher(data, force_serialize) {
         if (force_serialize === true && this.serialize_driver.getDriverName() === 'PhpSerializer') {
@@ -258,9 +258,9 @@ class Base_encryptor {
         throw new EncryptorError_1.EncryptorError(error);
     }
     static generateRandomKey(length) {
-        length = length ? length : Base_encryptor.app_key_length;
-        if (valid_key_lengths.indexOf(length) < 0) {
-            console.error('valid options are: ', valid_key_lengths);
+        length = length ? length : default_aes;
+        if (valid_aes.indexOf(length) < 0) {
+            console.error('valid options are: ', valid_aes);
             return;
         }
         try {
@@ -275,5 +275,4 @@ class Base_encryptor {
         return this.raw_decrypted;
     }
 }
-Base_encryptor.app_key_length = default_key_length;
 exports.Base_encryptor = Base_encryptor;

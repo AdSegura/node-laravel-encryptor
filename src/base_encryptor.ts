@@ -4,8 +4,8 @@ import {PhpSerializer} from "./serializers/phpSerializer";
 import {JsonSerializer} from "./serializers/jsonSerializer";
 import cryptTypes from "crypto";
 import {Encryptor} from "./Encryptor";
-const valid_key_lengths = [128, 256];
-const default_key_length = 256;
+const valid_aes = [128, 256];
+const default_aes = 256;
 
 let crypto;
 //Determining if crypto support is unavailable
@@ -26,17 +26,14 @@ export class Base_encryptor {
     /** SECRET KEY Buffer */
     protected readonly secret: any;
 
-    /** key length */
-    protected key_length: number = default_key_length;
+    /** AES 128/256 */
+    protected aes_mode = default_aes;
 
     /** valid key length in laravel aes-[128]-cbc aes-[256]-cbc */
-    protected  valid_key_lengths =  valid_key_lengths;
+    protected  valid_aes_modes =  valid_aes;
 
     /** Bytes number crypto.randomBytes default 8 */
     protected random_bytes = 8;
-
-    /** Bytes number generateRandomKey default aes-256-cbc */
-    private static readonly app_key_length = default_key_length;
 
     /** serialize driver */
     private serialize_driver: Serializer;
@@ -205,18 +202,18 @@ export class Base_encryptor {
     /**
      * setAlgorithm
      *  will populate this.algorithm with valid one aes-[128]-cbc aes-[256]-cbc
-     *  from options.key_length or this.key_length
+     *  from options.aes_mode or this.key_length
      *
      *  if there is an error will push it to errors (and return as reject at public methods)
      */
     protected setAlgorithm() {
-        if (this.options.key_length && this.valid_key_lengths.indexOf(this.options.key_length) < 0)
+        if (this.options.key_length && this.valid_aes_modes.indexOf(this.options.key_length) < 0)
             Base_encryptor.throwError(
                 'The only supported ciphers are AES-128-CBC and AES-256-CBC with the correct key lengths.'
             );
 
         this.algorithm = this.options.key_length ?
-            `aes-${this.options.key_length}-cbc` : `aes-${this.key_length}-cbc`;
+            `aes-${this.options.key_length}-cbc` : `aes-${this.aes_mode}-cbc`;
     }
 
     /**
@@ -538,11 +535,11 @@ export class Base_encryptor {
      * @return string
      */
     static generateRandomKey(length?: number): string {
-        length = length ? length : Base_encryptor.app_key_length;
+        length = length ? length : default_aes;
 
         //laravel supports 128/256
-        if(valid_key_lengths.indexOf(length) < 0){
-            console.error('valid options are: ', valid_key_lengths);
+        if(valid_aes.indexOf(length) < 0){
+            console.error('valid options are: ', valid_aes);
             return;
         }
 

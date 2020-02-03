@@ -1,9 +1,11 @@
 <?php
 include 'tests/php/Encrypter.php';
 
-$encrypted = $argv[1];
+$key = $argv[1];
+$mode = $argv[2];
+$encrypted = $argv[3];
 
-$enc = new Encrypter(base64_decode('LQUcxdgHIEiBAixaJ8BInmXRHdKLOacDXMEBLU0Ci/o='), 'AES-256-CBC');
+$enc = new Encrypter(base64_decode($key), $mode);
 
 $de = $enc->decrypt($encrypted, $unserialize = true);
 
