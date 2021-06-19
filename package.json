@@ -5,7 +5,7 @@
     "npm": ">=6.4.1"
   },
   "module": "dist/index.js",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "node version Laravel Illuminate/Encryption/Encrypter.php",
   "main": "dist/index.js",
   "repository": {
