@@ -41,7 +41,7 @@
     "chai-http": "^4.3.0",
     "cookie-parser": "^1.4.4",
     "express": "^4.17.1",
-    "mocha": "^6.2.0",
+    "mocha": "^10.2.0",
     "typescript": "^2.9.2",
     "uuid": "^3.3.3"
   }
